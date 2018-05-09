@@ -65,6 +65,7 @@ def resolve_commit(commit):
     return ref
 
 def parse_log(logname):
+    print ("loading log %s" % (logname))
     if logname.endswith(".gz"):
         log_file = gzip.open(logname, 'rb')
     else:

@@ -139,6 +139,7 @@ for date in days:
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory, 0755)
+    print("saving updated stats %s" % (path))
     f = open(path, 'w')
     json.dump(day, f, default=lambda x: x.__dict__, sort_keys = True)
     f.close()
