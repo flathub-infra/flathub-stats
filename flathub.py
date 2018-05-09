@@ -23,7 +23,8 @@ nginx_log_pat = (r''
                  '(\d+)\s' #status
                  '(\d+)\s' #size
                  '"([^"]*)"\s' #referrer
-                 '"([^"]*)"' #user agent
+                 '"([^"]*)"\s' #user agent
+                 '"([^"]*)"' #forwarded for
 )
 nginx_log_re = re.compile(nginx_log_pat)
 
@@ -75,9 +76,11 @@ def parse_log(logname):
         return []
 
     target_ref_group = -1
+    forwarded_for_group = -1
     l = nginx_log_re.match(first_line)
     if l:
         line_re = nginx_log_re
+        forwarded_for_group = 10
     else:
         l = fastly_log_re.match(first_line)
         if l:
@@ -107,6 +110,14 @@ def parse_log(logname):
             continue
         if not (path.startswith("/repo/deltas/") and path.endswith("/superblock")):
             continue
+
+        # If forwarded-for is set we're probably looking at something the cdn sent, so ignore that as we
+        # get that from the cdn logs
+        if forwarded_for_group > 0:
+            forwarded_for = l.group(forwarded_for_group)
+            if len(forwarded_for) == 0:
+                continue
+
         delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
         is_delta = False
         if delta.find("-") != -1:
