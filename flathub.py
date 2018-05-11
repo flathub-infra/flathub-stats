@@ -138,7 +138,7 @@ def parse_log(logname):
             continue
         date_str = date_str[:-6]
         date_struct = time.strptime(date_str, '%d/%b/%Y:%H:%M:%S')
-        date = u"%d/%d/%d" % (date_struct.tm_year, date_struct.tm_mon,  date_struct.tm_mday)
+        date = u"%d/%02d/%02d" % (date_struct.tm_year, date_struct.tm_mon,  date_struct.tm_mday)
 
         user_agent = l.group(9)
 
