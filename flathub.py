@@ -13,6 +13,7 @@ REF=2
 OSTREE_VERSION=3
 FLATPAK_VERSION=4
 IS_DELTA=5
+IS_UPDATE=6
 
 # 196.52.60.9 - - [30/Apr/2018:03:31:14 +0000] "GET /repo/deltas/c8/9hOBWniEuCUmvZGpmjoGNHqCrrlEoKxCTinfPDAOQ-Nf7zLm3IV8GxRH4W68kjhuUsXpIOOHZGUP1Rz8F4yuE/superblock HTTP/1.1" 200 9320 "-" "ostree libsoup/2.52.2" "-"
 nginx_log_pat = (r''
@@ -156,7 +157,8 @@ def parse_log(logname):
             if len(target_ref) == 0:
                 target_ref = None
 
-        download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta)
+        is_update = is_delta # TODO: Get this from extra header
+        download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta, is_update)
         downloads.append(download)
     return downloads
 

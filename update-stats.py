@@ -16,41 +16,49 @@ def ref_to_id(ref):
         return "%s/%s" % (parts[1], parts[3])
     return None
 
-class InstallInfo:
+class RefInfo:
     def __init__(self):
-        self.arch = {}
+        pass
 
-    def add(self, ref):
+    def add(self, ref, is_update):
         parts = ref.split("/")
         arch = parts[2]
-        self.arch[arch] = self.arch.get(arch, 0) + 1
+        old = vars(self).get(arch, (0,0))
+        downloads = old[0] + 1
+        updates = old[1]
+        if is_update:
+            updates = updates + 1
+        vars(self)[arch] = (downloads, updates)
 
     def from_dict(self, dct):
-        self.arch = dct['arch']
+        for i in dct:
+            vars(self)[i] = dct[i]
 
 class DayInfo:
     def __init__(self, date):
         self.date = date
         self.downloads = 0
+        self.updates = 0
         self.delta_downloads = 0
         self.ostree_versions = {}
         self.flatpak_versions = {}
-        self.installs = {}
+        self.refs = {}
 
     def from_dict(self, dct):
         self.downloads = dct['downloads']
+        self.updates = dct['updates']
         self.delta_downloads = dct['delta_downloads']
         self.ostree_versions = dct['ostree_versions']
         self.flatpak_versions = dct['flatpak_versions']
-        installs = dct['installs']
-        for id in installs:
-            i = self.get_install(id)
-            i.from_dict(installs[id])
+        refs = dct['refs']
+        for id in refs:
+            ri = self.get_ref_info(id)
+            ri.from_dict(refs[id])
 
-    def get_install(self, id):
-        if not id in self.installs:
-            self.installs[id] = InstallInfo()
-        return self.installs[id]
+    def get_ref_info(self, id):
+        if not id in self.refs:
+            self.refs[id] = RefInfo()
+        return self.refs[id]
 
     def add(self, download):
         checksum = download[flathub.CHECKSUM]
@@ -63,12 +71,14 @@ class DayInfo:
         if not id:
             return
 
-        i = self.get_install(id)
-        i.add(ref)
+        ri = self.get_ref_info(id)
+        ri.add(ref, download[flathub.IS_UPDATE])
 
         self.downloads = self.downloads + 1
         if download[flathub.IS_DELTA]:
             self.delta_downloads = self.delta_downloads + 1
+        if download[flathub.IS_UPDATE]:
+            self.updates = self.updates + 1
 
         ostree_version = download[flathub.OSTREE_VERSION]
         self.ostree_versions[ostree_version] = self.ostree_versions.get (ostree_version, 0) + 1
