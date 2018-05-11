@@ -110,7 +110,7 @@ except:
     pass
 
 downloads = []
-for logname in sys.argv[1:]:
+for logname in args.logfiles:
     d = flathub.parse_log(logname)
     downloads = downloads + d
 
