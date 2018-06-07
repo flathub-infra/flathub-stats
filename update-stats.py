@@ -43,8 +43,10 @@ class DayInfo:
         self.ostree_versions = {}
         self.flatpak_versions = {}
         self.refs = {}
+        self.countries = {}
 
     def from_dict(self, dct):
+        self.countries = dct.get('countries', {})
         self.downloads = dct['downloads']
         self.updates = dct['updates']
         self.delta_downloads = dct['delta_downloads']
@@ -86,6 +88,10 @@ class DayInfo:
         flatpak_version = download[flathub.FLATPAK_VERSION]
         if flatpak_version:
             self.flatpak_versions[flatpak_version] = self.flatpak_versions.get (flatpak_version, 0) + 1
+
+        country = download[flathub.COUNTRY]
+        if country:
+            self.countries[country] = self.countries.get (country, 0) + 1
 
 def load_dayinfo(dest, date):
     day = DayInfo(date)

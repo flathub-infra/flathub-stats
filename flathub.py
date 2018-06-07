@@ -14,22 +14,9 @@ OSTREE_VERSION=3
 FLATPAK_VERSION=4
 IS_DELTA=5
 IS_UPDATE=6
+COUNTRY=7
 
-# 196.52.60.9 - - [30/Apr/2018:03:31:14 +0000] "GET /repo/deltas/c8/9hOBWniEuCUmvZGpmjoGNHqCrrlEoKxCTinfPDAOQ-Nf7zLm3IV8GxRH4W68kjhuUsXpIOOHZGUP1Rz8F4yuE/superblock HTTP/1.1" 200 9320 "-" "ostree libsoup/2.52.2" "-"
-nginx_log_pat = (r''
-                 '([\da-f.:]+)' #source
-                 '\s-\s-\s'
-                 '\[([^\]]+)\]\s' #datetime
-                 '"(\w+)\s([^\s"]+)\s([^"]+)"\s' #path
-                 '(\d+)\s' #status
-                 '(\d+)\s' #size
-                 '"([^"]*)"\s' #referrer
-                 '"([^"]*)"\s' #user agent
-                 '"([^"]*)"' #forwarded for
-)
-nginx_log_re = re.compile(nginx_log_pat)
-
-# 2a03:a960:3:1:204:200:0:1003 "-" "-" [08/May/2018:11:07:26 +0000] "GET /repo/deltas/Lh/+60ySNnHW48IMvGVWv9oY_tZDGc2JYtf7rvKohoGY-uP7vHfq1pss_ojTPIK_1RgkYG6hklljVx5Vh6cNtroM/superblock HTTP/1.1" 200 1148 "" "ostree libsoup/2.52.2" ""
+# 151.100.102.134 "-" "-" [05/Jun/2018:10:01:16 +0000] "GET /repo/objects/ca/717a9f713291670035f228520523cdea82811eb34521b58b7eea6d5f9e4085.filez HTTP/1.1" 200 822627 "" "libostree/2018.5 flatpak/0.11.7" "runtime/org.freedesktop.Sdk/x86_64/1.6" "" IT
 fastly_log_pat = (r''
                   '([\da-f.:]+)' #source
                   '\s"-"\s"-"\s'
@@ -39,7 +26,9 @@ fastly_log_pat = (r''
                   '([^\s]+)\s' #size
                   '"([^"]*)"\s' #referrer
                   '"([^"]*)"\s' #user agent
-                  '"([^"]*)"' #ref
+                  '"([^"]*)"\s' #ref
+                  '"([^"]*)"\s' #update_from
+                  '(\w+)' #update_from
 )
 fastly_log_re = re.compile(fastly_log_pat)
 
@@ -77,19 +66,11 @@ def parse_log(logname):
     if first_line == "":
         return []
 
-    target_ref_group = -1
-    forwarded_for_group = -1
-    l = nginx_log_re.match(first_line)
+    l = fastly_log_re.match(first_line)
     if l:
-        line_re = nginx_log_re
-        forwarded_for_group = 10
+        line_re = fastly_log_re
     else:
-        l = fastly_log_re.match(first_line)
-        if l:
-            line_re = fastly_log_re
-            target_ref_group = 10
-        else:
-            raise Exception('Unknown log format')
+        raise Exception('Unknown log format')
 
     downloads = []
 
@@ -112,13 +93,6 @@ def parse_log(logname):
             continue
         if not (path.startswith("/repo/deltas/") and path.endswith("/superblock")):
             continue
-
-        # If forwarded-for is set we're probably looking at something the cdn sent, so ignore that as we
-        # get that from the cdn logs
-        if forwarded_for_group > 0:
-            forwarded_for = l.group(forwarded_for_group)
-            if len(forwarded_for) == 0:
-                continue
 
         delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
         is_delta = False
@@ -151,14 +125,18 @@ def parse_log(logname):
             if ua.startswith("flatpak/"):
                 flatpak_version = ua[8:]
 
-        target_ref = None
-        if target_ref_group > 0:
-            target_ref = l.group(target_ref_group)
-            if len(target_ref) == 0:
-                target_ref = None
+        target_ref = l.group(10)
+        if len(target_ref) == 0:
+            target_ref = None
 
-        is_update = is_delta # TODO: Get this from extra header
-        download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta, is_update)
+        update_from = l.group(11)
+        if len(update_from) == 0:
+            update_from = None
+
+        country = l.group(12)
+
+        is_update = is_delta or update_from
+        download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta, is_update, country)
         downloads.append(download)
     return downloads
 
