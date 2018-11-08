@@ -18,6 +18,7 @@ COUNTRY=7
 
 # 151.100.102.134 "-" "-" [05/Jun/2018:10:01:16 +0000] "GET /repo/objects/ca/717a9f713291670035f228520523cdea82811eb34521b58b7eea6d5f9e4085.filez HTTP/1.1" 200 822627 "" "libostree/2018.5 flatpak/0.11.7" "runtime/org.freedesktop.Sdk/x86_64/1.6" "" IT
 fastly_log_pat = (r''
+                  ' ?' # allow leading space in syslog message per RFC3164
                   '([\da-f.:]+)' #source
                   '\s"-"\s"-"\s'
                   '\[([^\]]+)\]\s' #datetime
