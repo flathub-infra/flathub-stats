@@ -106,11 +106,14 @@ def load_dayinfo(dest, date):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dest", type=str, help="path to destination dir", default="stats")
+parser.add_argument("--ref-cache", type=str, dest="ref_cache_path",
+                    metavar="REFCACHE", default="ref-cache.json",
+                    help="path to ref-cache.json")
 parser.add_argument("logfiles", metavar='LOGFILE', type=str, help="path to log file", nargs='+')
 args = parser.parse_args()
 
 try:
-    f = open('ref-cache.json', 'r')
+    f = open(args.ref_cache_path, 'r')
     refs_cache = json.loads(f.read ())
 except:
     pass
@@ -133,7 +136,7 @@ for d in downloads:
 
 if cache_modified:
     try:
-        f = open('ref-cache.json', 'w')
+        f = open(args.ref_cache_path, 'w')
         json.dump(refs_cache, f)
         f.close()
     except:
