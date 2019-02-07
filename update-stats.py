@@ -6,7 +6,7 @@ import json
 import sys
 import os.path
 
-refs_cache = {}
+refs_cache = None
 
 def ref_to_id(ref):
     parts = ref.split("/")
@@ -64,7 +64,7 @@ class DayInfo:
 
     def add(self, download):
         checksum = download[flathub.CHECKSUM]
-        ref = refs_cache[checksum]
+        ref = refs_cache.lookup_ref(checksum)
 
         if not ref:
             return
@@ -112,35 +112,18 @@ parser.add_argument("--ref-cache", type=str, dest="ref_cache_path",
 parser.add_argument("logfiles", metavar='LOGFILE', type=str, help="path to log file", nargs='+')
 args = parser.parse_args()
 
-try:
-    f = open(args.ref_cache_path, 'r')
-    refs_cache = json.loads(f.read ())
-except:
-    pass
+refs_cache = flathub.load_cache(args.ref_cache_path)
 
 downloads = []
 for logname in args.logfiles:
     d = flathub.parse_log(logname)
     downloads = downloads + d
 
-cache_modified = False
 for d in downloads:
-    if d[flathub.REF] and d[flathub.CHECKSUM] not in refs_cache:
-        cache_modified = True
-        refs_cache[d[flathub.CHECKSUM]] = d[flathub.REF]
+    if not refs_cache.has_commit(d[flathub.CHECKSUM]):
+        refs_cache.update_for_commit(d[flathub.CHECKSUM], d[flathub.REF])
 
-for d in downloads:
-    if d[flathub.CHECKSUM] not in refs_cache:
-        cache_modified = True
-        refs_cache[d[flathub.CHECKSUM]] = flathub.resolve_commit(d[flathub.CHECKSUM])
-
-if cache_modified:
-    try:
-        f = open(args.ref_cache_path, 'w')
-        json.dump(refs_cache, f)
-        f.close()
-    except:
-        pass
+refs_cache.save(args.ref_cache_path)
 
 days = {}
 

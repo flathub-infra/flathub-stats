@@ -1,10 +1,68 @@
 #!/usr/bin/env python2
 
 import time
-import gzip, base64, binascii
+import gzip, base64, binascii, json
 import re, sys, gi
 from gi.repository import GLib
 import urllib2
+
+def load_cache(path):
+    commit_map = {}
+    try:
+        f = open(path, 'r')
+        commit_map = json.loads(f.read())
+    except:
+        pass
+
+    return CommitCache(commit_map)
+
+class CommitCache:
+    def __init__(self, commit_map):
+        self.commit_map = commit_map
+        self.modified = False
+
+        # Backwards compat, re-resolve all commits where we don't have root dirtree info
+        for commit, cached_data in self.commit_map.items():
+            if not isinstance(cached_data, list):
+                self.update_for_commit(commit, cached_data)
+
+    def update_for_commit(self, commit, known_branch = None):
+        ref = known_branch
+        root_dirtree = None
+        url = "https://dl.flathub.org/repo/objects/%s/%s.commit" % (commit[0:2], commit[2:])
+        try:
+            response = urllib2.urlopen(url)
+            commitv = response.read()
+            if commitv:
+                v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a{sv}aya(say)sstayay)"), GLib.Bytes.new(commitv), False)
+                if "xa.ref" in v[0]:
+                    ref = v[0]["xa.ref"]
+                elif "ostree.ref-binding" in v[0]:
+                    ref = v[0]["ostree.ref-binding"][0]
+                root_dirtree = binascii.hexlify(bytearray(v[6]))
+        except:
+            pass
+        print ("Resolving %s -> %s, %s" % (commit, ref, root_dirtree))
+        self.modified = True
+        self.commit_map[commit] = [ref, root_dirtree]
+
+    def has_commit(self, commit):
+        return commit in self.commit_map
+
+    def lookup_ref(self, commit):
+        if commit in self.commit_map:
+            return self.commit_map[commit][0]
+        return None
+
+    def save(self, path):
+        if self.modified:
+            try:
+                f = open(path, 'w')
+                json.dump(self.commit_map, f)
+                f.close()
+            except:
+                pass
+            self.modified = False
 
 # Indexes for log lines
 CHECKSUM=0
@@ -37,23 +95,6 @@ def deltaid_to_commit(deltaid):
     if deltaid:
         return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "=")).decode("utf-8")
     return None
-
-def resolve_commit(commit):
-    ref = None
-    url = "https://dl.flathub.org/repo/objects/%s/%s.commit" % (commit[0:2], commit[2:])
-    try:
-        response = urllib2.urlopen(url)
-        commitv = response.read()
-        if commitv:
-            v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a{sv}aya(say)sstayay)"), GLib.Bytes.new(commitv), False)
-            if "xa.ref" in v[0]:
-                ref = v[0]["xa.ref"]
-            elif "ostree.ref-binding" in v[0]:
-                ref = v[0]["ostree.ref-binding"][0]
-    except:
-        pass
-    print ("Resolving %s -> %s" % (commit, ref))
-    return ref
 
 def parse_log(logname):
     print ("loading log %s" % (logname))
