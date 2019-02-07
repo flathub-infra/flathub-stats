@@ -19,6 +19,7 @@ def load_cache(path):
 class CommitCache:
     def __init__(self, commit_map):
         self.commit_map = commit_map
+        self.dirtree_map = {}
         self.modified = False
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
@@ -26,10 +27,36 @@ class CommitCache:
             if not isinstance(cached_data, list):
                 self.update_for_commit(commit, cached_data)
 
+        for commit, cached_data in self.commit_map.items():
+            dirtree = cached_data[1]
+            if dirtree:
+                self.dirtree_map[dirtree] = commit
+
+        self.summary_map = {}
+        url = "https://dl.flathub.org/repo/summary"
+        try:
+            response = urllib2.urlopen(url)
+            summaryv = response.read()
+            if summaryv:
+                v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a(s(taya{sv}))a{sv})"), GLib.Bytes.new(summaryv), False)
+                for m in v[0]:
+                    self.summary_map[m[0].decode("utf-8")] = binascii.hexlify(bytearray(m[1][1])).decode("utf-8")
+        except:
+            print(sys.exc_info())
+            pass
+
+    def update_from_summary(self, branch):
+        if not branch in self.summary_map:
+            return
+        commit = self.summary_map[branch]
+        if not self.has_commit(commit):
+            self.update_for_commit(commit, branch)
+
     def update_for_commit(self, commit, known_branch = None):
         ref = known_branch
         root_dirtree = None
         url = "https://dl.flathub.org/repo/objects/%s/%s.commit" % (commit[0:2], commit[2:])
+        print "Resolving %s" % (commit),
         try:
             response = urllib2.urlopen(url)
             commitv = response.read()
@@ -39,20 +66,25 @@ class CommitCache:
                     ref = v[0]["xa.ref"]
                 elif "ostree.ref-binding" in v[0]:
                     ref = v[0]["ostree.ref-binding"][0]
-                root_dirtree = binascii.hexlify(bytearray(v[6]))
+                root_dirtree = binascii.hexlify(bytearray(v[6])).decode("utf-8")
         except:
             pass
-        print ("Resolving %s -> %s, %s" % (commit, ref, root_dirtree))
+        print "-> %s, %s" % (ref, root_dirtree)
         self.modified = True
         self.commit_map[commit] = [ref, root_dirtree]
+        if root_dirtree:
+            self.dirtree_map[root_dirtree] = commit
 
     def has_commit(self, commit):
         return commit in self.commit_map
 
     def lookup_ref(self, commit):
-        if commit in self.commit_map:
-            return self.commit_map[commit][0]
-        return None
+        pair = self.commit_map.get(commit, None)
+        if pair:
+            return pair[0]
+
+    def lookup_by_dirtree(self, dirtree):
+        return self.dirtree_map.get(dirtree, None)
 
     def save(self, path):
         if self.modified:
@@ -96,7 +128,7 @@ def deltaid_to_commit(deltaid):
         return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "=")).decode("utf-8")
     return None
 
-def parse_log(logname):
+def parse_log(logname, cache):
     print ("loading log %s" % (logname))
     if logname.endswith(".gz"):
         log_file = gzip.open(logname, 'rb')
@@ -133,20 +165,52 @@ def parse_log(logname):
         path = l.group(4)
         if op != "GET" or result != "200":
             continue
-        if not (path.startswith("/repo/deltas/") and path.endswith("/superblock")):
+
+        target_ref = l.group(10)
+        if len(target_ref) == 0:
+            target_ref = None
+
+        # Ensure we have (at least) the current HEAD for this branch cached.
+        # We need this to have any chance to map a dirtree object to the
+        # corresponding ref, because unless we saw the commit id for some
+        # other reason before we will not have resolved it so we can do
+        # the reverse lookup.
+        if target_ref:
+            cache.update_from_summary(target_ref)
+
+        is_delta = False
+        if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
+            delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
+            if delta.find("-") != -1:
+                is_delta = True
+                source = delta[:delta.find("-")]
+                target = delta[delta.find("-")+1:]
+            else:
+                source = None
+                target = delta
+
+            commit = deltaid_to_commit(target)
+
+        elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
+            dirtree = path[len("/repo/objects/"):-len(".dirtree")].replace("/", "")
+            commit = cache.lookup_by_dirtree(dirtree)
+            if not commit:
+                continue # Probably not a root dirtree (although could be commit we never saw before)
+        else:
+            # Some other kind of log line, ignore
             continue
 
-        delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
-        is_delta = False
-        if delta.find("-") != -1:
-            is_delta = True
-            source = delta[:delta.find("-")]
-            target = delta[delta.find("-")+1:]
-        else:
-            source = None
-            target = delta
+        # Maybe this is a new commit, if so cache it for future use
+        if not cache.has_commit(commit):
+            cache.update_for_commit(commit, target_ref)
 
-        commit = deltaid_to_commit(target)
+        # Some log entries have no ref specified, if so look it up via the cache
+        if not target_ref:
+            target_ref = cache.lookup_ref(commit)
+
+        if not target_ref:
+            print ("Unable to figure out ref for commit " + commit)
+            continue
 
         date_str = l.group(2)
         if (not date_str.endswith(" +0000")):
@@ -167,10 +231,6 @@ def parse_log(logname):
             if ua.startswith("flatpak/"):
                 flatpak_version = ua[8:]
 
-        target_ref = l.group(10)
-        if len(target_ref) == 0:
-            target_ref = None
-
         update_from = l.group(11)
         if len(update_from) == 0:
             update_from = None
@@ -180,12 +240,14 @@ def parse_log(logname):
         is_update = is_delta or update_from
         download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta, is_update, country)
         downloads.append(download)
+
+
     return downloads
 
 if __name__ == "__main__":
     logs = []
     for logname in sys.argv[1:]:
-        log = parse_log(logname)
+        log = parse_log(logname, CommitCache({}))
         logs = logs + log
     for l in logs:
         print l

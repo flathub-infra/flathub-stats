@@ -64,7 +64,7 @@ class DayInfo:
 
     def add(self, download):
         checksum = download[flathub.CHECKSUM]
-        ref = refs_cache.lookup_ref(checksum)
+        ref = download[flathub.REF]
 
         if not ref:
             return
@@ -116,12 +116,8 @@ refs_cache = flathub.load_cache(args.ref_cache_path)
 
 downloads = []
 for logname in args.logfiles:
-    d = flathub.parse_log(logname)
+    d = flathub.parse_log(logname, refs_cache)
     downloads = downloads + d
-
-for d in downloads:
-    if not refs_cache.has_commit(d[flathub.CHECKSUM]):
-        refs_cache.update_for_commit(d[flathub.CHECKSUM], d[flathub.REF])
 
 refs_cache.save(args.ref_cache_path)
 
