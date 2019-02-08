@@ -128,6 +128,14 @@ def deltaid_to_commit(deltaid):
         return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "=")).decode("utf-8")
     return None
 
+def should_keep_ref(ref):
+    parts = ref.split("/")
+    if parts[0] == "app":
+        return True
+    if parts[0] == "runtime" and not (parts[1].endswith(".Debug") or parts[1].endswith(".Locale") or parts[1].endswith(".Sources")):
+        return True
+    return False
+
 def parse_log(logname, cache):
     print ("loading log %s" % (logname))
     if logname.endswith(".gz"):
@@ -169,6 +177,10 @@ def parse_log(logname, cache):
         target_ref = l.group(10)
         if len(target_ref) == 0:
             target_ref = None
+
+        # Early bailout for uninteresting refs (like locales) to keep work down
+        if target_ref != None and not should_keep_ref(target_ref):
+            continue
 
         # Ensure we have (at least) the current HEAD for this branch cached.
         # We need this to have any chance to map a dirtree object to the
