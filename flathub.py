@@ -141,7 +141,7 @@ def should_keep_ref(ref):
         return True
     return False
 
-def parse_log(logname, cache):
+def parse_log(logname, cache, ignore_deltas = False):
     print ("loading log %s" % (logname))
     if logname.endswith(".gz"):
         log_file = gzip.open(logname, 'rb')
@@ -197,6 +197,8 @@ def parse_log(logname, cache):
 
         is_delta = False
         if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
+            if ignore_deltas:
+                continue
             delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
             if delta.find("-") != -1:
                 is_delta = True

@@ -109,6 +109,8 @@ parser.add_argument("--dest", type=str, help="path to destination dir", default=
 parser.add_argument("--ref-cache", type=str, dest="ref_cache_path",
                     metavar="REFCACHE", default="ref-cache.json",
                     help="path to ref-cache.json")
+parser.add_argument("--ignore-deltas", action='store_true',
+                    help="ignore deltas in the log")
 parser.add_argument("logfiles", metavar='LOGFILE', type=str, help="path to log file", nargs='+')
 args = parser.parse_args()
 
@@ -116,7 +118,7 @@ refs_cache = flathub.load_cache(args.ref_cache_path)
 
 downloads = []
 for logname in args.logfiles:
-    d = flathub.parse_log(logname, refs_cache)
+    d = flathub.parse_log(logname, refs_cache, args.ignore_deltas)
     downloads = downloads + d
 
 refs_cache.save(args.ref_cache_path)
