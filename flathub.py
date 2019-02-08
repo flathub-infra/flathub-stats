@@ -23,9 +23,15 @@ class CommitCache:
         self.modified = False
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
+        # Also remove uninteresting things from the cache
         for commit, cached_data in self.commit_map.items():
             if not isinstance(cached_data, list):
-                self.update_for_commit(commit, cached_data)
+                ref = cached_data
+                # Older version saved uninteresting refs in the cache, but we don't need them anymore
+                if ref and should_keep_ref(ref):
+                    self.update_for_commit(commit, ref)
+                else:
+                    del self.commit_map[commit]
 
         for commit, cached_data in self.commit_map.items():
             dirtree = cached_data[1]
