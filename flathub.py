@@ -230,6 +230,10 @@ def parse_log(logname, cache):
             print ("Unable to figure out ref for commit " + commit)
             continue
 
+        # Late bailout, as we're now sure of the ref
+        if not should_keep_ref(target_ref):
+            continue
+
         date_str = l.group(2)
         if (not date_str.endswith(" +0000")):
             sys.stderr.write("Unhandled date timezone: %s\n" % (date_str))
