@@ -47,10 +47,8 @@ class CommitCache:
             pass
 
     def update_from_summary(self, branch):
-        if not branch in self.summary_map:
-            return
-        commit = self.summary_map[branch]
-        if not self.has_commit(commit):
+        commit = self.summary_map.get(branch, None)
+        if commit and not self.has_commit(commit):
             self.update_for_commit(commit, branch)
 
     def update_for_commit(self, commit, known_branch = None):
