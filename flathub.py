@@ -42,6 +42,7 @@ class CommitCache:
                 for m in v[0]:
                     self.summary_map[m[0].decode("utf-8")] = binascii.hexlify(bytearray(m[1][1])).decode("utf-8")
         except:
+            print("Failed to load summary: ")
             print(sys.exc_info())
             pass
 
@@ -205,9 +206,10 @@ def parse_log(logname, cache):
 
         elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
             dirtree = path[len("/repo/objects/"):-len(".dirtree")].replace("/", "")
+            # Look up via the reverse map for all the commits we've seen so far
             commit = cache.lookup_by_dirtree(dirtree)
             if not commit:
-                continue # Probably not a root dirtree (although could be commit we never saw before)
+                continue # No match, probably not a root dirtree (although could be commit we never saw before)
         else:
             # Some other kind of log line, ignore
             continue
