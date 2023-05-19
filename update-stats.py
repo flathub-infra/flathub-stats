@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import argparse
 import flathub
@@ -138,8 +138,8 @@ for date in days:
     path = os.path.join(args.dest, date + ".json")
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
-        os.makedirs(directory, 0755)
-    print("saving updated stats %s" % (path))
+        os.makedirs(directory, 0o755)
+    print(("saving updated stats %s" % (path)))
     f = open(path, 'w')
     json.dump(day, f, default=lambda x: x.__dict__, sort_keys = True)
     f.close()
