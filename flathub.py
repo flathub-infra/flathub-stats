@@ -1,10 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import time
 import gzip, base64, binascii, json
 import re, sys, gi
 from gi.repository import GLib
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 def load_cache(path):
     commit_map = {}
@@ -24,7 +24,7 @@ class CommitCache:
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
         # Also remove uninteresting things from the cache
-        for commit, cached_data in self.commit_map.items():
+        for commit, cached_data in list(self.commit_map.items()):
             if not isinstance(cached_data, list):
                 ref = cached_data
                 # Older version saved uninteresting refs in the cache, but we don't need them anymore
@@ -33,7 +33,7 @@ class CommitCache:
                 else:
                     del self.commit_map[commit]
 
-        for commit, cached_data in self.commit_map.items():
+        for commit, cached_data in list(self.commit_map.items()):
             dirtree = cached_data[1]
             if dirtree:
                 self.dirtree_map[dirtree] = commit
@@ -41,7 +41,7 @@ class CommitCache:
         self.summary_map = {}
         url = "https://dl.flathub.org/repo/summary"
         try:
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             summaryv = response.read()
             if summaryv:
                 v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a(s(taya{sv}))a{sv})"), GLib.Bytes.new(summaryv), False)
@@ -49,7 +49,7 @@ class CommitCache:
                     self.summary_map[m[0].decode("utf-8")] = binascii.hexlify(bytearray(m[1][1])).decode("utf-8")
         except:
             print("Failed to load summary: ")
-            print(sys.exc_info())
+            print((sys.exc_info()))
             pass
 
     def update_from_summary(self, branch):
@@ -61,9 +61,9 @@ class CommitCache:
         ref = known_branch
         root_dirtree = None
         url = "https://dl.flathub.org/repo/objects/%s/%s.commit" % (commit[0:2], commit[2:])
-        print "Resolving %s" % (commit),
+        print("Resolving %s" % (commit), end=' ')
         try:
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             commitv = response.read()
             if commitv:
                 v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a{sv}aya(say)sstayay)"), GLib.Bytes.new(commitv), False)
@@ -74,7 +74,7 @@ class CommitCache:
                 root_dirtree = binascii.hexlify(bytearray(v[6])).decode("utf-8")
         except:
             pass
-        print "-> %s, %s" % (ref, root_dirtree)
+        print("-> %s, %s" % (ref, root_dirtree))
         self.modified = True
         self.commit_map[commit] = [ref, root_dirtree]
         if root_dirtree:
@@ -142,7 +142,7 @@ def should_keep_ref(ref):
     return False
 
 def parse_log(logname, cache, ignore_deltas = False):
-    print ("loading log %s" % (logname))
+    print(("loading log %s" % (logname)))
     if logname.endswith(".gz"):
         log_file = gzip.open(logname, 'rb')
     else:
@@ -229,7 +229,7 @@ def parse_log(logname, cache, ignore_deltas = False):
             target_ref = cache.lookup_ref(commit)
 
         if not target_ref:
-            print ("Unable to figure out ref for commit " + commit)
+            print(("Unable to figure out ref for commit " + commit))
             continue
 
         # Late bailout, as we're now sure of the ref
@@ -242,12 +242,12 @@ def parse_log(logname, cache, ignore_deltas = False):
             continue
         date_str = date_str[:-6]
         date_struct = time.strptime(date_str, '%d/%b/%Y:%H:%M:%S')
-        date = u"%d/%02d/%02d" % (date_struct.tm_year, date_struct.tm_mon,  date_struct.tm_mday)
+        date = "%d/%02d/%02d" % (date_struct.tm_year, date_struct.tm_mon,  date_struct.tm_mday)
 
         user_agent = l.group(9)
 
         uas = user_agent.split(" ")
-        ostree_version = u"2017.15" # This is the last version that didn't list version
+        ostree_version = "2017.15" # This is the last version that didn't list version
         flatpak_version = None
         for ua in uas:
             if ua.startswith("libostree/"):
@@ -274,4 +274,4 @@ if __name__ == "__main__":
         log = parse_log(logname, CommitCache({}))
         logs = logs + log
     for l in logs:
-        print l
+        print(l)
