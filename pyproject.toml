@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "flathub-stats"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "flathub_stats"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+PyGObject = "^3.44.1"
+argparse = "^1.4.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3"
+pytest = "^7.3.1"
+ruff = "^0.0.267"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+ignore = ["E501", "E402"]
+extend-select = ["I", "W", "UP", "TCH"]
