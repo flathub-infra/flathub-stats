@@ -10,6 +10,3 @@ Script to parse server logs into json files used for stats on flathub sites.
 - Generate some test data via `poetry run python generate-test-data.py`
 - Run `poetry run python update-stats.py test/test-data.log`
 
-## Test data
-
-- The test data is not perfect, curretly, we're not creting correct fake data for delta downloads and updates
