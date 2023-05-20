@@ -24,10 +24,11 @@ def load_cache(path):
 
     return CommitCache(commit_map)
 
+
 class CommitCache:
     def __init__(self, commit_map):
-        self.commit_map = commit_map
-        self.dirtree_map = {}
+        self.commit_map: dict = commit_map
+        self.dirtree_map: dict[bytes | None] = {}
         self.modified = False
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
@@ -52,7 +53,11 @@ class CommitCache:
             response = urllib.request.urlopen(url)
             summaryv = response.read()
             if summaryv:
-                v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a(s(taya{sv}))a{sv})"), GLib.Bytes.new(summaryv), False)
+                v = GLib.Variant.new_from_bytes(
+                    GLib.VariantType.new("(a(s(taya{sv}))a{sv})"),
+                    GLib.Bytes.new(summaryv),
+                    False,
+                )
                 for m in v[0]:
                     self.summary_map[m[0]] = binascii.hexlify(bytearray(m[1][1]))
         except:
@@ -60,21 +65,25 @@ class CommitCache:
             print(sys.exc_info())
             pass
 
-    def update_from_summary(self, branch):
+    def update_from_summary(self, branch: str):
         commit = self.summary_map.get(branch, None)
         if commit and not self.has_commit(commit):
             self.update_for_commit(commit, branch)
 
-    def update_for_commit(self, commit, known_branch = None):
+    def update_for_commit(self, commit: bytes | None, known_branch: str | None = None):
         ref = known_branch
         root_dirtree = None
         url = f"https://dl.flathub.org/repo/objects/{commit[0:2]}/{commit[2:]}.commit"
-        print("Resolving %s" % (commit), end=' ')
+        print("Resolving %s" % (commit), end=" ")
         try:
             response = urllib.request.urlopen(url)
             commitv = response.read()
             if commitv:
-                v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a{sv}aya(say)sstayay)"), GLib.Bytes.new(commitv), False)
+                v = GLib.Variant.new_from_bytes(
+                    GLib.VariantType.new("(a{sv}aya(say)sstayay)"),
+                    GLib.Bytes.new(commitv),
+                    False,
+                )
                 if "xa.ref" in v[0]:
                     ref = v[0]["xa.ref"]
                 elif "ostree.ref-binding" in v[0]:
@@ -96,63 +105,72 @@ class CommitCache:
         if pair:
             return pair[0]
 
-    def lookup_by_dirtree(self, dirtree):
+    def lookup_by_dirtree(self, dirtree) -> bytes | None:
         return self.dirtree_map.get(dirtree, None)
 
     def save(self, path):
         if self.modified:
             try:
-                f = open(path, 'w')
+                f = open(path, "w")
                 json.dump(self.commit_map, f)
                 f.close()
             except:
                 pass
             self.modified = False
 
+
 # Indexes for log lines
-CHECKSUM=0
-DATE=1
-REF=2
-OSTREE_VERSION=3
-FLATPAK_VERSION=4
-IS_DELTA=5
-IS_UPDATE=6
-COUNTRY=7
+CHECKSUM = 0
+DATE = 1
+REF = 2
+OSTREE_VERSION = 3
+FLATPAK_VERSION = 4
+IS_DELTA = 5
+IS_UPDATE = 6
+COUNTRY = 7
 
 # 151.100.102.134 "-" "-" [05/Jun/2018:10:01:16 +0000] "GET /repo/objects/ca/717a9f713291670035f228520523cdea82811eb34521b58b7eea6d5f9e4085.filez HTTP/1.1" 200 822627 "" "libostree/2018.5 flatpak/0.11.7" "runtime/org.freedesktop.Sdk/x86_64/1.6" "" IT
-fastly_log_pat = (r''
-                  ' ?' # allow leading space in syslog message per RFC3164
-                  '([\\da-f.:]+)' #source
-                  '\\s"-"\\s"-"\\s'
-                  '\\[([^\\]]+)\\]\\s' #datetime
-                  '"(\\w+)\\s([^\\s"]+)\\s([^"]+)"\\s' #path
-                  '(\\d+)\\s' #status
-                  '([^\\s]+)\\s' #size
-                  '"([^"]*)"\\s' #referrer
-                  '"([^"]*)"\\s' #user agent
-                  '"([^"]*)"\\s' #ref
-                  '"([^"]*)"\\s' #update_from
-                  '(\\w+)' #update_from
+fastly_log_pat = (
+    r""
+    " ?"  # allow leading space in syslog message per RFC3164
+    "([\\da-f.:]+)"  # source
+    '\\s"-"\\s"-"\\s'
+    "\\[([^\\]]+)\\]\\s"  # datetime
+    '"(\\w+)\\s([^\\s"]+)\\s([^"]+)"\\s'  # path
+    "(\\d+)\\s"  # status
+    "([^\\s]+)\\s"  # size
+    '"([^"]*)"\\s'  # referrer
+    '"([^"]*)"\\s'  # user agent
+    '"([^"]*)"\\s'  # ref
+    '"([^"]*)"\\s'  # update_from
+    "(\\w+)"  # update_from
 )
 fastly_log_re = re.compile(fastly_log_pat)
 
-def deltaid_to_commit(deltaid):
+
+def deltaid_to_commit(deltaid: str) -> bytes | None:
     if deltaid:
         return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "="))
     return None
 
-def should_keep_ref(ref):
+
+def should_keep_ref(ref: str) -> bool:
     parts = ref.split("/")
     if parts[0] == "app":
         return True
-    if parts[0] == "runtime" and not (parts[1].endswith(".Debug") or parts[1].endswith(".Locale") or parts[1].endswith(".Sources")):
+    if parts[0] == "runtime" and not (
+        parts[1].endswith(".Debug")
+        or parts[1].endswith(".Locale")
+        or parts[1].endswith(".Sources")
+    ):
         return True
     return False
 
-def parse_log(logname, cache, ignore_deltas = False):
+
+def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
     print("loading log %s" % (logname))
     if logname.endswith(".gz"):
-        log_file = gzip.open(logname, 'rb')
+        log_file = gzip.open(logname, "rb")
     else:
         log_file = open(logname)
 
@@ -165,7 +183,7 @@ def parse_log(logname, cache, ignore_deltas = False):
     if match:
         line_re = fastly_log_re
     else:
-        raise Exception('Unknown log format')
+        raise Exception("Unknown log format")
 
     downloads = []
 
@@ -187,7 +205,7 @@ def parse_log(logname, cache, ignore_deltas = False):
         if op != "GET" or result != "200":
             continue
 
-        target_ref = match.group(10)
+        target_ref: str = match.group(10)
         if len(target_ref) == 0:
             target_ref = None
 
@@ -207,22 +225,22 @@ def parse_log(logname, cache, ignore_deltas = False):
         if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
             if ignore_deltas:
                 continue
-            delta = path[len("/repo/deltas/"):-len("/superblock")].replace("/", "")
+            delta = path[len("/repo/deltas/") : -len("/superblock")].replace("/", "")
             if delta.find("-") != -1:
                 is_delta = True
-                delta[:delta.find("-")]
-                target = delta[delta.find("-")+1:]
+                delta[: delta.find("-")]
+                target = delta[delta.find("-") + 1 :]
             else:
                 target = delta
 
             commit = deltaid_to_commit(target)
 
         elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
-            dirtree = path[len("/repo/objects/"):-len(".dirtree")].replace("/", "")
+            dirtree = path[len("/repo/objects/") : -len(".dirtree")].replace("/", "")
             # Look up via the reverse map for all the commits we've seen so far
             commit = cache.lookup_by_dirtree(dirtree)
             if not commit:
-                continue # No match, probably not a root dirtree (although could be commit we never saw before)
+                continue  # No match, probably not a root dirtree (although could be commit we never saw before)
         else:
             # Some other kind of log line, ignore
             continue
@@ -244,17 +262,21 @@ def parse_log(logname, cache, ignore_deltas = False):
             continue
 
         date_str = match.group(2)
-        if (not date_str.endswith(" +0000")):
+        if not date_str.endswith(" +0000"):
             sys.stderr.write("Unhandled date timezone: %s\n" % (date_str))
             continue
         date_str = date_str[:-6]
-        date_struct = time.strptime(date_str, '%d/%b/%Y:%H:%M:%S')
-        date = "%d/%02d/%02d" % (date_struct.tm_year, date_struct.tm_mon,  date_struct.tm_mday)
+        date_struct = time.strptime(date_str, "%d/%b/%Y:%H:%M:%S")
+        date = "%d/%02d/%02d" % (
+            date_struct.tm_year,
+            date_struct.tm_mon,
+            date_struct.tm_mday,
+        )
 
         user_agent = match.group(9)
 
         uas = user_agent.split(" ")
-        ostree_version = "2017.15" # This is the last version that didn't list version
+        ostree_version = "2017.15"  # This is the last version that didn't list version
         flatpak_version = None
         for ua in uas:
             if ua.startswith("libostree/"):
@@ -269,11 +291,20 @@ def parse_log(logname, cache, ignore_deltas = False):
         country = match.group(12)
 
         is_update = is_delta or update_from
-        download = (commit, date, target_ref, ostree_version, flatpak_version, is_delta, is_update, country)
+        download = (
+            commit,
+            date,
+            target_ref,
+            ostree_version,
+            flatpak_version,
+            is_delta,
+            is_update,
+            country,
+        )
         downloads.append(download)
 
-
     return downloads
+
 
 if __name__ == "__main__":
     logs = []
