@@ -4,3 +4,4 @@ ref-cache.json
 __pycache__
 stats
 test
+.ruff_cache
