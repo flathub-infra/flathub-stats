@@ -7,12 +7,6 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/poetry:2": {}
 	},
-	// "remoteUser": "vscode",
-	// "containerUser": "vscode",
-	// // "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,Z"
-	// "runArgs": [
-	// "--userns=keep-id"
-	// ]
 	"workspaceMount": "",
 	"runArgs": [
 		"--volume=${localWorkspaceFolder}:/workspaces/${localWorkspaceFolderBasename}:Z"
@@ -22,7 +16,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends python3 python3-dev python-is-python3 python3-venv build-essential libcairo2-dev libgirepository1.0-dev gir1.2-ostree-1.0 gir1.2-appstream-1.0 flatpak"
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends python3 python3-dev python-is-python3 python3-venv build-essential libcairo2-dev libgirepository1.0-dev gir1.2-ostree-1.0 gir1.2-appstream-1.0 flatpak && pip install ruff"
 	// Configure tool-specific properties.
 	// "customizations": {},
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
