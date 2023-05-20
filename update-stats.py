@@ -8,22 +8,28 @@ import flathub
 
 refs_cache = None
 
-def ref_to_id(ref):
+
+def ref_to_id(ref: str) -> str | None:
     parts = ref.split("/")
     if parts[0] == "app":
         return parts[1]
-    if parts[0] == "runtime" and not (parts[1].endswith(".Debug") or parts[1].endswith(".Locale") or parts[1].endswith(".Sources")):
+    if parts[0] == "runtime" and not (
+        parts[1].endswith(".Debug")
+        or parts[1].endswith(".Locale")
+        or parts[1].endswith(".Sources")
+    ):
         return f"{parts[1]}/{parts[3]}"
     return None
+
 
 class RefInfo:
     def __init__(self):
         pass
 
-    def add(self, ref, is_update):
+    def add(self, ref: str, is_update: bool):
         parts = ref.split("/")
         arch = parts[2]
-        old = vars(self).get(arch, (0,0))
+        old = vars(self).get(arch, (0, 0))
         downloads = old[0] + 1
         updates = old[1]
         if is_update:
@@ -33,6 +39,7 @@ class RefInfo:
     def from_dict(self, dct):
         for i in dct:
             vars(self)[i] = dct[i]
+
 
 class DayInfo:
     def __init__(self, date):
@@ -46,13 +53,13 @@ class DayInfo:
         self.countries = {}
 
     def from_dict(self, dct):
-        self.countries = dct.get('countries', {})
-        self.downloads = dct['downloads']
-        self.updates = dct['updates']
-        self.delta_downloads = dct['delta_downloads']
-        self.ostree_versions = dct['ostree_versions']
-        self.flatpak_versions = dct['flatpak_versions']
-        refs = dct['refs']
+        self.countries = dct.get("countries", {})
+        self.downloads = dct["downloads"]
+        self.updates = dct["updates"]
+        self.delta_downloads = dct["delta_downloads"]
+        self.ostree_versions = dct["ostree_versions"]
+        self.flatpak_versions = dct["flatpak_versions"]
+        refs = dct["refs"]
         for id in refs:
             ri = self.get_ref_info(id)
             ri.from_dict(refs[id])
@@ -69,7 +76,7 @@ class DayInfo:
         if not ref:
             return
 
-        id = ref_to_id (ref)
+        id = ref_to_id(ref)
         if not id:
             return
 
@@ -83,35 +90,49 @@ class DayInfo:
             self.updates = self.updates + 1
 
         ostree_version = download[flathub.OSTREE_VERSION]
-        self.ostree_versions[ostree_version] = self.ostree_versions.get (ostree_version, 0) + 1
+        self.ostree_versions[ostree_version] = (
+            self.ostree_versions.get(ostree_version, 0) + 1
+        )
 
         flatpak_version = download[flathub.FLATPAK_VERSION]
         if flatpak_version:
-            self.flatpak_versions[flatpak_version] = self.flatpak_versions.get (flatpak_version, 0) + 1
+            self.flatpak_versions[flatpak_version] = (
+                self.flatpak_versions.get(flatpak_version, 0) + 1
+            )
 
         country = download[flathub.COUNTRY]
         if country:
-            self.countries[country] = self.countries.get (country, 0) + 1
+            self.countries[country] = self.countries.get(country, 0) + 1
 
-def load_dayinfo(dest, date):
+
+def load_dayinfo(dest, date) -> DayInfo:
     day = DayInfo(date)
     path = os.path.join(dest, date + ".json")
     if os.path.exists(path):
         day_f = open(path)
-        dct = json.loads(day_f.read ())
+        dct = json.loads(day_f.read())
         day_f.close()
-        day = DayInfo(dct['date'])
+        day = DayInfo(dct["date"])
         day.from_dict(dct)
     return day
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--dest", type=str, help="path to destination dir", default="stats")
-parser.add_argument("--ref-cache", type=str, dest="ref_cache_path",
-                    metavar="REFCACHE", default="ref-cache.json",
-                    help="path to ref-cache.json")
-parser.add_argument("--ignore-deltas", action='store_true',
-                    help="ignore deltas in the log")
-parser.add_argument("logfiles", metavar='LOGFILE', type=str, help="path to log file", nargs='+')
+parser.add_argument(
+    "--ref-cache",
+    type=str,
+    dest="ref_cache_path",
+    metavar="REFCACHE",
+    default="ref-cache.json",
+    help="path to ref-cache.json",
+)
+parser.add_argument(
+    "--ignore-deltas", action="store_true", help="ignore deltas in the log"
+)
+parser.add_argument(
+    "logfiles", metavar="LOGFILE", type=str, help="path to log file", nargs="+"
+)
 args = parser.parse_args()
 
 refs_cache = flathub.load_cache(args.ref_cache_path)
@@ -134,12 +155,12 @@ for d in downloads:
     day.add(d)
 
 for date in days:
-    day=days[date]
+    day = days[date]
     path = os.path.join(args.dest, date + ".json")
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory, 0o755)
     print("saving updated stats %s" % (path))
-    f = open(path, 'w')
-    json.dump(day, f, default=lambda x: x.__dict__, sort_keys = True)
+    f = open(path, "w")
+    json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True)
     f.close()
