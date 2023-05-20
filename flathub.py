@@ -46,7 +46,7 @@ class CommitCache:
             if summaryv:
                 v = GLib.Variant.new_from_bytes(GLib.VariantType.new("(a(s(taya{sv}))a{sv})"), GLib.Bytes.new(summaryv), False)
                 for m in v[0]:
-                    self.summary_map[m[0].decode("utf-8")] = binascii.hexlify(bytearray(m[1][1])).decode("utf-8")
+                    self.summary_map[m[0]] = binascii.hexlify(bytearray(m[1][1]))
         except:
             print("Failed to load summary: ")
             print((sys.exc_info()))
@@ -71,7 +71,7 @@ class CommitCache:
                     ref = v[0]["xa.ref"]
                 elif "ostree.ref-binding" in v[0]:
                     ref = v[0]["ostree.ref-binding"][0]
-                root_dirtree = binascii.hexlify(bytearray(v[6])).decode("utf-8")
+                root_dirtree = binascii.hexlify(bytearray(v[6]))
         except:
             pass
         print("-> %s, %s" % (ref, root_dirtree))
@@ -130,7 +130,7 @@ fastly_log_re = re.compile(fastly_log_pat)
 
 def deltaid_to_commit(deltaid):
     if deltaid:
-        return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "=")).decode("utf-8")
+        return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "="))
     return None
 
 def should_keep_ref(ref):
@@ -149,7 +149,7 @@ def parse_log(logname, cache, ignore_deltas = False):
         log_file = open(logname, 'r')
 
     # detect log type
-    first_line = log_file.readline().decode("utf-8")
+    first_line = log_file.readline()
     if first_line == "":
         return []
 
@@ -166,7 +166,7 @@ def parse_log(logname, cache, ignore_deltas = False):
             line = first_line
             first_line = None
         else:
-            line = log_file.readline().decode("utf-8")
+            line = log_file.readline()
         if line == "":
             break
         l = line_re.match(line)
@@ -229,7 +229,7 @@ def parse_log(logname, cache, ignore_deltas = False):
             target_ref = cache.lookup_ref(commit)
 
         if not target_ref:
-            print(("Unable to figure out ref for commit " + commit))
+            print(("Unable to figure out ref for commit " + str(commit)))
             continue
 
         # Late bailout, as we're now sure of the ref
