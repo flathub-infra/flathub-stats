@@ -162,5 +162,5 @@ for date in days:
         os.makedirs(directory, 0o755)
     print("saving updated stats %s" % (path))
     f = open(path, "w")
-    json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True)
+    json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True, indent=4)
     f.close()
