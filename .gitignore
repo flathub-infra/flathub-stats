@@ -2,3 +2,4 @@
 ref-cache.json
 .venv
 __pycache__
+stats
