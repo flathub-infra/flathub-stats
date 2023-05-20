@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
-import flathub
 import json
-import sys
 import os.path
+
+import flathub
 
 refs_cache = None
 
@@ -13,7 +13,7 @@ def ref_to_id(ref):
     if parts[0] == "app":
         return parts[1]
     if parts[0] == "runtime" and not (parts[1].endswith(".Debug") or parts[1].endswith(".Locale") or parts[1].endswith(".Sources")):
-        return "%s/%s" % (parts[1], parts[3])
+        return f"{parts[1]}/{parts[3]}"
     return None
 
 class RefInfo:
@@ -58,18 +58,18 @@ class DayInfo:
             ri.from_dict(refs[id])
 
     def get_ref_info(self, id):
-        if not id in self.refs:
+        if id not in self.refs:
             self.refs[id] = RefInfo()
         return self.refs[id]
 
     def add(self, download):
-        checksum = download[flathub.CHECKSUM]
+        download[flathub.CHECKSUM]
         ref = download[flathub.REF]
 
         if not ref:
             return
 
-        id = ref_to_id (ref);
+        id = ref_to_id (ref)
         if not id:
             return
 
@@ -97,7 +97,7 @@ def load_dayinfo(dest, date):
     day = DayInfo(date)
     path = os.path.join(dest, date + ".json")
     if os.path.exists(path):
-        day_f = open(path, 'r')
+        day_f = open(path)
         dct = json.loads(day_f.read ())
         day_f.close()
         day = DayInfo(dct['date'])
@@ -139,7 +139,7 @@ for date in days:
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory, 0o755)
-    print(("saving updated stats %s" % (path)))
+    print("saving updated stats %s" % (path))
     f = open(path, 'w')
     json.dump(day, f, default=lambda x: x.__dict__, sort_keys = True)
     f.close()
