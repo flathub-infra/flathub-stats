@@ -109,11 +109,10 @@ def load_dayinfo(dest, date) -> DayInfo:
     day = DayInfo(date)
     path = os.path.join(dest, date + ".json")
     if os.path.exists(path):
-        day_f = open(path)
-        dct = json.loads(day_f.read())
-        day_f.close()
-        day = DayInfo(dct["date"])
-        day.from_dict(dct)
+        with open(path) as day_f:
+            dct = json.loads(day_f.read())
+            day = DayInfo(dct["date"])
+            day.from_dict(dct)
     return day
 
 
@@ -161,6 +160,5 @@ for date in days:
     if not os.path.exists(directory):
         os.makedirs(directory, 0o755)
     print("saving updated stats %s" % (path))
-    f = open(path, "w")
-    json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True, indent=4)
-    f.close()
+    with open(path, "w") as f:
+        json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True, indent=4)

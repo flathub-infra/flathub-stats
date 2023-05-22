@@ -17,8 +17,8 @@ from gi.repository import GLib
 def load_cache(path):
     commit_map = {}
     try:
-        f = open(path)
-        commit_map = json.loads(f.read())
+        with open(path, "w") as f:
+            commit_map = json.loads(f.read())
     except:
         pass
 
@@ -111,9 +111,8 @@ class CommitCache:
     def save(self, path):
         if self.modified:
             try:
-                f = open(path, "w")
-                json.dump(self.commit_map, f)
-                f.close()
+                with open(path, "w") as f:
+                    json.dump(self.commit_map, f)
             except:
                 pass
             self.modified = False
@@ -169,139 +168,144 @@ def should_keep_ref(ref: str) -> bool:
 
 def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
     print("loading log %s" % (logname))
-    if logname.endswith(".gz"):
-        log_file = gzip.open(logname, "rb")
-    else:
-        log_file = open(logname)
-
-    # detect log type
-    first_line = log_file.readline()
-    if first_line == "":
-        return []
-
-    match = fastly_log_re.match(first_line)
-    if match:
-        line_re = fastly_log_re
-    else:
-        raise Exception("Unknown log format")
 
     downloads = []
 
-    while True:
-        if first_line:
-            line = first_line
-            first_line = None
+    with gzip.open(logname, "rb") if logname.endswith(".gz") else open(
+        logname
+    ) as log_file:
+        # detect log type
+        first_line = log_file.readline()
+        if first_line == "":
+            return []
+
+        match = fastly_log_re.match(first_line)
+        if match:
+            line_re = fastly_log_re
         else:
-            line = log_file.readline()
-        if line == "":
-            break
-        match = line_re.match(line)
-        if not match:
-            sys.stderr.write("Warning: Can't match line: %s\n" % (line[:-1]))
-            continue
-        op = match.group(3)
-        result = match.group(6)
-        path = match.group(4)
-        if op != "GET" or result != "200":
-            continue
+            raise Exception("Unknown log format")
 
-        target_ref: str = match.group(10)
-        if len(target_ref) == 0:
-            target_ref = None
-
-        # Early bailout for uninteresting refs (like locales) to keep work down
-        if target_ref is not None and not should_keep_ref(target_ref):
-            continue
-
-        # Ensure we have (at least) the current HEAD for this branch cached.
-        # We need this to have any chance to map a dirtree object to the
-        # corresponding ref, because unless we saw the commit id for some
-        # other reason before we will not have resolved it so we can do
-        # the reverse lookup.
-        if target_ref:
-            cache.update_from_summary(target_ref)
-
-        is_delta = False
-        if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
-            if ignore_deltas:
-                continue
-            delta = path[len("/repo/deltas/") : -len("/superblock")].replace("/", "")
-            if delta.find("-") != -1:
-                is_delta = True
-                delta[: delta.find("-")]
-                target = delta[delta.find("-") + 1 :]
+        while True:
+            if first_line:
+                line = first_line
+                first_line = None
             else:
-                target = delta
+                line = log_file.readline()
+            if line == "":
+                break
+            match = line_re.match(line)
+            if not match:
+                sys.stderr.write("Warning: Can't match line: %s\n" % (line[:-1]))
+                continue
+            op = match.group(3)
+            result = match.group(6)
+            path = match.group(4)
+            if op != "GET" or result != "200":
+                continue
 
-            commit = deltaid_to_commit(target)
+            target_ref: str = match.group(10)
+            if len(target_ref) == 0:
+                target_ref = None
 
-        elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
-            dirtree = path[len("/repo/objects/") : -len(".dirtree")].replace("/", "")
-            # Look up via the reverse map for all the commits we've seen so far
-            commit = cache.lookup_by_dirtree(dirtree)
-            if not commit:
-                continue  # No match, probably not a root dirtree (although could be commit we never saw before)
-        else:
-            # Some other kind of log line, ignore
-            continue
+            # Early bailout for uninteresting refs (like locales) to keep work down
+            if target_ref is not None and not should_keep_ref(target_ref):
+                continue
 
-        # Maybe this is a new commit, if so cache it for future use
-        if not cache.has_commit(commit):
-            cache.update_for_commit(commit, target_ref)
+            # Ensure we have (at least) the current HEAD for this branch cached.
+            # We need this to have any chance to map a dirtree object to the
+            # corresponding ref, because unless we saw the commit id for some
+            # other reason before we will not have resolved it so we can do
+            # the reverse lookup.
+            if target_ref:
+                cache.update_from_summary(target_ref)
 
-        # Some log entries have no ref specified, if so look it up via the cache
-        if not target_ref:
-            target_ref = cache.lookup_ref(commit)
+            is_delta = False
+            if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
+                if ignore_deltas:
+                    continue
+                delta = path[len("/repo/deltas/") : -len("/superblock")].replace(
+                    "/", ""
+                )
+                if delta.find("-") != -1:
+                    is_delta = True
+                    delta[: delta.find("-")]
+                    target = delta[delta.find("-") + 1 :]
+                else:
+                    target = delta
 
-        if not target_ref:
-            print("Unable to figure out ref for commit " + str(commit))
-            continue
+                commit = deltaid_to_commit(target)
 
-        # Late bailout, as we're now sure of the ref
-        if not should_keep_ref(target_ref):
-            continue
+            elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
+                dirtree = path[len("/repo/objects/") : -len(".dirtree")].replace(
+                    "/", ""
+                )
+                # Look up via the reverse map for all the commits we've seen so far
+                commit = cache.lookup_by_dirtree(dirtree)
+                if not commit:
+                    continue  # No match, probably not a root dirtree (although could be commit we never saw before)
+            else:
+                # Some other kind of log line, ignore
+                continue
 
-        date_str = match.group(2)
-        if not date_str.endswith(" +0000"):
-            sys.stderr.write("Unhandled date timezone: %s\n" % (date_str))
-            continue
-        date_str = date_str[:-6]
-        date_struct = time.strptime(date_str, "%d/%b/%Y:%H:%M:%S")
-        date = "%d/%02d/%02d" % (
-            date_struct.tm_year,
-            date_struct.tm_mon,
-            date_struct.tm_mday,
-        )
+            # Maybe this is a new commit, if so cache it for future use
+            if not cache.has_commit(commit):
+                cache.update_for_commit(commit, target_ref)
 
-        user_agent = match.group(9)
+            # Some log entries have no ref specified, if so look it up via the cache
+            if not target_ref:
+                target_ref = cache.lookup_ref(commit)
 
-        uas = user_agent.split(" ")
-        ostree_version = "2017.15"  # This is the last version that didn't list version
-        flatpak_version = None
-        for ua in uas:
-            if ua.startswith("libostree/"):
-                ostree_version = ua[10:]
-            if ua.startswith("flatpak/"):
-                flatpak_version = ua[8:]
+            if not target_ref:
+                print("Unable to figure out ref for commit " + str(commit))
+                continue
 
-        update_from = match.group(11)
-        if len(update_from) == 0:
-            update_from = None
+            # Late bailout, as we're now sure of the ref
+            if not should_keep_ref(target_ref):
+                continue
 
-        country = match.group(12)
+            date_str = match.group(2)
+            if not date_str.endswith(" +0000"):
+                sys.stderr.write("Unhandled date timezone: %s\n" % (date_str))
+                continue
+            date_str = date_str[:-6]
+            date_struct = time.strptime(date_str, "%d/%b/%Y:%H:%M:%S")
+            date = "%d/%02d/%02d" % (
+                date_struct.tm_year,
+                date_struct.tm_mon,
+                date_struct.tm_mday,
+            )
 
-        is_update = is_delta or update_from
-        download = (
-            commit,
-            date,
-            target_ref,
-            ostree_version,
-            flatpak_version,
-            is_delta,
-            is_update,
-            country,
-        )
-        downloads.append(download)
+            user_agent = match.group(9)
+
+            uas = user_agent.split(" ")
+            ostree_version = (
+                "2017.15"  # This is the last version that didn't list version
+            )
+            flatpak_version = None
+            for ua in uas:
+                if ua.startswith("libostree/"):
+                    ostree_version = ua[10:]
+                if ua.startswith("flatpak/"):
+                    flatpak_version = ua[8:]
+
+            update_from = match.group(11)
+            if len(update_from) == 0:
+                update_from = None
+
+            country = match.group(12)
+
+            is_update = is_delta or update_from
+            download = (
+                commit,
+                date,
+                target_ref,
+                ostree_version,
+                flatpak_version,
+                is_delta,
+                is_update,
+                country,
+            )
+            downloads.append(download)
 
     return downloads
 
