@@ -64,7 +64,7 @@ class CommitCache:
                     self.summary_map[m[0]] = binascii.hexlify(
                         bytearray(m[1][1])
                     ).decode("utf-8")
-        except:
+        except OSError:
             print("Failed to load summary: ")
             print(sys.exc_info())
             pass
