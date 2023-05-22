@@ -17,9 +17,11 @@ from gi.repository import GLib
 def load_cache(path):
     commit_map = {}
     try:
-        with open(path, "w") as f:
+        print("Loading cache from %s" % (path))
+        with open(path) as f:
             commit_map = json.loads(f.read())
-    except:
+    except OSError:
+        print("Failed to load cache")
         pass
 
     return CommitCache(commit_map)
@@ -27,8 +29,8 @@ def load_cache(path):
 
 class CommitCache:
     def __init__(self, commit_map):
-        self.commit_map: dict = commit_map
-        self.dirtree_map: dict[bytes | None] = {}
+        self.commit_map: dict[str, list[str | None]] = commit_map
+        self.dirtree_map: dict[str | None] = {}
         self.modified = False
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
@@ -59,7 +61,9 @@ class CommitCache:
                     False,
                 )
                 for m in v[0]:
-                    self.summary_map[m[0]] = binascii.hexlify(bytearray(m[1][1]))
+                    self.summary_map[m[0]] = binascii.hexlify(
+                        bytearray(m[1][1])
+                    ).decode("utf-8")
         except:
             print("Failed to load summary: ")
             print(sys.exc_info())
@@ -70,7 +74,7 @@ class CommitCache:
         if commit and not self.has_commit(commit):
             self.update_for_commit(commit, branch)
 
-    def update_for_commit(self, commit: bytes | None, known_branch: str | None = None):
+    def update_for_commit(self, commit: str | None, known_branch: str | None = None):
         ref = known_branch
         root_dirtree = None
         url = f"https://dl.flathub.org/repo/objects/{commit[0:2]}/{commit[2:]}.commit"
@@ -88,8 +92,9 @@ class CommitCache:
                     ref = v[0]["xa.ref"]
                 elif "ostree.ref-binding" in v[0]:
                     ref = v[0]["ostree.ref-binding"][0]
-                root_dirtree = binascii.hexlify(bytearray(v[6]))
-        except:
+                root_dirtree = binascii.hexlify(bytearray(v[6])).decode("utf-8")
+        except OSError:
+            print("Failed to resolve commit")
             pass
         print(f"-> {ref}, {root_dirtree}")
         self.modified = True
@@ -105,15 +110,16 @@ class CommitCache:
         if pair:
             return pair[0]
 
-    def lookup_by_dirtree(self, dirtree) -> bytes | None:
+    def lookup_by_dirtree(self, dirtree) -> str | None:
         return self.dirtree_map.get(dirtree, None)
 
     def save(self, path):
         if self.modified:
             try:
                 with open(path, "w") as f:
-                    json.dump(self.commit_map, f)
-            except:
+                    json.dump(self.commit_map, f, indent=4)
+            except OSError:
+                print("Failed to save cache")
                 pass
             self.modified = False
 
@@ -147,9 +153,11 @@ fastly_log_pat = (
 fastly_log_re = re.compile(fastly_log_pat)
 
 
-def deltaid_to_commit(deltaid: str) -> bytes | None:
+def deltaid_to_commit(deltaid: str) -> str | None:
     if deltaid:
-        return binascii.hexlify(base64.b64decode(deltaid.replace("_", "/") + "="))
+        return binascii.hexlify(
+            base64.b64decode(deltaid.replace("_", "/") + "=")
+        ).decode("utf-8")
     return None
 
 
