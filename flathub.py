@@ -154,10 +154,14 @@ fastly_log_re = re.compile(fastly_log_pat)
 
 
 def deltaid_to_commit(deltaid: str) -> str | None:
-    if deltaid:
-        return binascii.hexlify(
-            base64.b64decode(deltaid.replace("_", "/") + "=")
-        ).decode("utf-8")
+    try:
+        if deltaid:
+            return binascii.hexlify(
+                base64.b64decode(deltaid.replace("_", "/") + "=")
+            ).decode("utf-8")
+    except binascii.Error:
+        pass
+
     return None
 
 
@@ -242,6 +246,8 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                     target = delta
 
                 commit = deltaid_to_commit(target)
+                if not commit:
+                    continue
 
             elif path.startswith("/repo/objects/") and path.endswith(".dirtree"):
                 dirtree = path[len("/repo/objects/") : -len(".dirtree")].replace(
