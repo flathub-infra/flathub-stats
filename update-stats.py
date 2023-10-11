@@ -40,6 +40,23 @@ class RefInfo:
         for i in dct:
             vars(self)[i] = dct[i]
 
+class RefCountryInfo:
+    def __init__(self):
+        pass
+
+    def add(self, is_update: bool, country: str):
+        old_country = vars(self).get(country, (0, 0))
+        downloads_country = old_country[0] + 1
+        updates_country = old_country[1]
+        if is_update:
+            updates_country = updates_country + 1
+
+        vars(self)[country] = (downloads_country, updates_country)
+
+    def from_dict(self, dct):
+        for i in dct:
+            vars(self)[i] = dct[i]
+
 
 class DayInfo:
     def __init__(self, date):
@@ -51,6 +68,7 @@ class DayInfo:
         self.flatpak_versions = {}
         self.refs = {}
         self.countries = {}
+        self.ref_by_country = {}
 
     def from_dict(self, dct):
         self.countries = dct.get("countries", {})
@@ -68,6 +86,11 @@ class DayInfo:
         if id not in self.refs:
             self.refs[id] = RefInfo()
         return self.refs[id]
+    
+    def get_ref_country_info(self, id):
+        if id not in self.ref_by_country:
+            self.ref_by_country[id] = RefCountryInfo()
+        return self.ref_by_country[id]
 
     def add(self, download):
         download[flathub.CHECKSUM]
@@ -79,7 +102,7 @@ class DayInfo:
         id = ref_to_id(ref)
         if not id:
             return
-
+        
         ri = self.get_ref_info(id)
         ri.add(ref, download[flathub.IS_UPDATE])
 
@@ -102,6 +125,8 @@ class DayInfo:
 
         country = download[flathub.COUNTRY]
         if country:
+            ri = self.get_ref_country_info(id)
+            ri.add(download[flathub.IS_UPDATE], country)
             self.countries[country] = self.countries.get(country, 0) + 1
 
 
