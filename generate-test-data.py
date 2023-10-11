@@ -1,3 +1,4 @@
+from pathlib import Path
 from faker import Faker
 
 fake = Faker()
@@ -89,6 +90,8 @@ def data_row() -> str:
     app = fake_apps()
     return f'{fake_ip()} "-" "-" [{day}] "GET {app[0]} HTTP/1.1" 200 {fake.random_number(digits=12)} "" "{fake_user_agent()}" "{app[1]}" "{fake_is_update()}" {fake.country_code()}'
 
+
+Path("test").mkdir(parents=True, exist_ok=True)
 
 # write to file
 with open("test/test-data.log", "w") as f:
