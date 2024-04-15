@@ -14,7 +14,7 @@ argparse = "^1.4.0"
 black = "^24.4"
 pytest = "^7.3.1"
 ruff = "^0.3.7"
-faker = "^18.9.0"
+faker = "^24.9.0"
 
 [build-system]
 requires = ["poetry-core"]
