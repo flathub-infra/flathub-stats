@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-PyGObject = "^3.44.1"
+PyGObject = "^3.48.2"
 argparse = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
