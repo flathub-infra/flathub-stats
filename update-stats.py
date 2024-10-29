@@ -40,6 +40,7 @@ class RefInfo:
         for i in dct:
             vars(self)[i] = dct[i]
 
+
 class RefCountryInfo:
     def __init__(self):
         pass
@@ -86,7 +87,7 @@ class DayInfo:
         if id not in self.refs:
             self.refs[id] = RefInfo()
         return self.refs[id]
-    
+
     def get_ref_country_info(self, id):
         if id not in self.ref_by_country:
             self.ref_by_country[id] = RefCountryInfo()
@@ -102,7 +103,7 @@ class DayInfo:
         id = ref_to_id(ref)
         if not id:
             return
-        
+
         ri = self.get_ref_info(id)
         ri.add(ref, download[flathub.IS_UPDATE])
 
