@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from faker import Faker
 
 fake = Faker()

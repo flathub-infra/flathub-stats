@@ -17,7 +17,7 @@ from gi.repository import GLib
 def load_cache(path):
     commit_map = {}
     try:
-        print("Loading cache from %s" % (path))
+        print(f"Loading cache from {path}")
         with open(path) as f:
             commit_map = json.loads(f.read())
     except OSError:
@@ -78,7 +78,7 @@ class CommitCache:
         ref = known_branch
         root_dirtree = None
         url = f"https://dl.flathub.org/repo/objects/{commit[0:2]}/{commit[2:]}.commit"
-        print("Resolving %s" % (commit), end=" ")
+        print(f"Resolving {commit}", end=" ")
         try:
             response = urllib.request.urlopen(url)
             commitv = response.read()
@@ -169,17 +169,18 @@ def should_keep_ref(ref: str) -> bool:
     parts = ref.split("/")
     if parts[0] == "app":
         return True
-    if parts[0] == "runtime" and not (
-        parts[1].endswith(".Debug")
-        or parts[1].endswith(".Locale")
-        or parts[1].endswith(".Sources")
-    ):
-        return True
-    return False
+    return bool(
+        parts[0] == "runtime"
+        and not (
+            parts[1].endswith(".Debug")
+            or parts[1].endswith(".Locale")
+            or parts[1].endswith(".Sources")
+        )
+    )
 
 
 def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
-    print("loading log %s" % (logname))
+    print(f"loading log {logname}")
 
     downloads = []
 
@@ -207,7 +208,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 break
             match = line_re.match(line)
             if not match:
-                sys.stderr.write("Warning: Can't match line: %s\n" % (line[:-1]))
+                sys.stderr.write(f"Warning: Can't match line: {line[:-1]}\n")
                 continue
             op = match.group(3)
             result = match.group(6)
@@ -279,7 +280,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
 
             date_str = match.group(2)
             if not date_str.endswith(" +0000"):
-                sys.stderr.write("Unhandled date timezone: %s\n" % (date_str))
+                sys.stderr.write(f"Unhandled date timezone: {date_str}\n")
                 continue
             date_str = date_str[:-6]
             date_struct = time.strptime(date_str, "%d/%b/%Y:%H:%M:%S")

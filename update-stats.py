@@ -173,7 +173,7 @@ days = {}
 
 for d in downloads:
     date = d[flathub.DATE]
-    day = days.get(date, None)
+    day = days.get(date)
     if not day:
         day = load_dayinfo(args.dest, date)
         days[date] = day
@@ -185,6 +185,6 @@ for date in days:
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory, 0o755)
-    print("saving updated stats %s" % (path))
+    print(f"saving updated stats {path}")
     with open(path, "w") as f:
         json.dump(day, f, default=lambda x: x.__dict__, sort_keys=True, indent=4)
