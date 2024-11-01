@@ -13,7 +13,7 @@ argparse = "^1.4.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 ruff = "^0.5.2"
-faker = "^30.8.1"
+faker = "^30.8.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
