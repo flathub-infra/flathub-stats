@@ -12,7 +12,7 @@ argparse = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
-ruff = "^0.5.2"
+ruff = "^0.9.3"
 faker = "^33.1.0"
 
 [build-system]
