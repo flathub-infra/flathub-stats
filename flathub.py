@@ -184,8 +184,8 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
 
     downloads = []
 
-    with gzip.open(logname, "rb") if logname.endswith(".gz") else open(
-        logname
+    with (
+        gzip.open(logname, "rb") if logname.endswith(".gz") else open(logname)
     ) as log_file:
         # detect log type
         first_line = log_file.readline()
