@@ -284,11 +284,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 continue
             date_str = date_str[:-6]
             date_struct = time.strptime(date_str, "%d/%b/%Y:%H:%M:%S")
-            date = "%d/%02d/%02d" % (
-                date_struct.tm_year,
-                date_struct.tm_mon,
-                date_struct.tm_mday,
-            )
+            date = f"{date_struct.tm_year}/{date_struct.tm_mon:02d}/{date_struct.tm_mday:02d}"
 
             user_agent = match.group(9)
 
