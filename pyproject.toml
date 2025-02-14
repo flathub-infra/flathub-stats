@@ -13,7 +13,7 @@ argparse = "^1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.5"
-faker = "^35.2.0"
+faker = "^36.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
