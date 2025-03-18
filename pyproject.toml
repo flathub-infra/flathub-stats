@@ -1,20 +1,16 @@
-[tool.poetry]
+[project]
 name = "flathub-stats"
 version = "0.1.0"
 description = ""
-authors = ["Bartłomiej Piotrowski <bpiotrowski@gnome.org>", "Kolja Lampe <razzeee@gmail.com"]
 readme = "README.md"
-package-mode = false
+requires-python = ">=3.10"
+dependencies = [
+    "argparse>=1.4.0",
+    "pygobject==3.48.2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-PyGObject = "^3.48.2"
-argparse = "^1.4.0"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.9.9"
-faker = "^36.1.1"
-
-[tool.ruff]
-lint.ignore = ["E501", "E402"]
-lint.extend-select = ["I", "W", "UP", "TCH", "SIM"]
+[dependency-groups]
+dev = [
+    "faker>=37.0.0",
+    "ruff>=0.11.0",
+]
