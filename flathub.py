@@ -203,7 +203,12 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 line = first_line
                 first_line = None
             else:
-                line = log_file.readline()
+                try:
+                    line = log_file.readline()
+                except UnicodeDecodeError:
+                    print(f"Skipping undecodable line in {logname}")
+                    continue
+
             if line == "":
                 break
             match = line_re.match(line)
