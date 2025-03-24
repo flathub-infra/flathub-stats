@@ -6,7 +6,6 @@ Script to parse server logs into json files used for stats on flathub sites.
 
 - Check out repo
 - Start in vscode and let it start the container
-- Run `poetry install`
-- Generate some test data via `poetry run python generate-test-data.py`
-- Run `poetry run python update-stats.py test/test-data.log`
+- Generate some test data via `uv run python generate-test-data.py`
+- Run `uv run python update-stats.py test/test-data.log`
 
