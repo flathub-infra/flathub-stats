@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
     "argparse>=1.4.0",
-    "pygobject==3.48.2",
+    "pygobject==3.54.5",
 ]
 
 [dependency-groups]
