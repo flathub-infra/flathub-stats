@@ -106,7 +106,6 @@ class DayInfo:
         self.refs = {}
         self.countries = {}
         self.ref_by_country = {}
-        self.os_ids = {}
         self.os_versions = {}
         self.ref_by_os = {}
         self.ref_by_os_version = {}
@@ -118,7 +117,6 @@ class DayInfo:
         self.delta_downloads = dct["delta_downloads"]
         self.ostree_versions = dct["ostree_versions"]
         self.flatpak_versions = dct["flatpak_versions"]
-        self.os_ids = dct.get("os_ids", {})
         self.os_versions = dct.get("os_versions", {})
         refs = dct["refs"]
         for id in refs:
@@ -197,7 +195,6 @@ class DayInfo:
         os_id = download[flathub.OS_ID]
         os_version = download[flathub.OS_VERSION]
         if os_id:
-            self.os_ids[os_id] = self.os_ids.get(os_id, 0) + 1
             ri = self.get_ref_os_info(id)
             ri.add(download[flathub.IS_UPDATE], os_id)
         if os_version:
