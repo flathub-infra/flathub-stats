@@ -5,3 +5,4 @@ __pycache__
 stats
 test
 .ruff_cache
+.coverage

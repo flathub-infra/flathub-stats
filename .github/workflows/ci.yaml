@@ -18,16 +18,24 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends build-essential libcairo2-dev libgirepository1.0-dev
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      
+      - name: Install dependencies
+        run: |
+          uv sync --all-groups
+
       - name: Check code formatting
-        run: uvx ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Check for code errors
-        run: uvx ruff check .
+        run: uv run ruff check .
+
+      - name: Run tests with pytest
+        run: |
+          uv run pytest tests/ -v --cov=. --cov-report=term-missing

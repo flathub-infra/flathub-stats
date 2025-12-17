@@ -15,3 +15,8 @@ dev = [
     "faker>=37.0.0",
     "ruff>=0.11.0",
 ]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+    "syrupy>=4.0.0",
+]
