@@ -87,9 +87,25 @@ def fake_is_update() -> str:
     )
 
 
+def fake_os_info() -> str:
+    return fake.random_element(
+        elements=(
+            "fedora;42;x86_64",
+            "fedora;41;x86_64",
+            "ubuntu;24.04;x86_64",
+            "ubuntu;22.04;x86_64",
+            "debian;unknown;x86_64",
+            "arch;unknown;x86_64",
+            "opensuse-tumbleweed;20251215;x86_64",
+            "",
+        )
+    )
+
+
 def data_row() -> str:
     app = fake_apps()
-    return f'{fake_ip()} "-" "-" [{day}] "GET {app[0]} HTTP/1.1" 200 {fake.random_number(digits=12)} "" "{fake_user_agent()}" "{app[1]}" "{fake_is_update()}" {fake.country_code()}'
+    os_info = fake_os_info()
+    return f'{fake_ip()} "-" "-" [{day}] "GET {app[0]} HTTP/1.1" 200 {fake.random_number(digits=12)} "" "{fake_user_agent()}" "{app[1]}" "{fake_is_update()}" {fake.country_code()} "{os_info}"'
 
 
 Path("test").mkdir(parents=True, exist_ok=True)
