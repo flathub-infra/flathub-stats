@@ -1,6 +1,26 @@
+import argparse
 from pathlib import Path
 
 from faker import Faker
+
+parser = argparse.ArgumentParser(description="Generate test data for flathub-stats")
+parser.add_argument(
+    "--seed",
+    type=int,
+    help="Random seed for reproducible test data generation",
+    default=None,
+)
+parser.add_argument(
+    "--count",
+    type=int,
+    help="Number of log entries to generate",
+    default=1000,
+)
+args = parser.parse_args()
+
+# Use provided seed or generate one
+seed = args.seed if args.seed is not None else Faker().random.randint(0, 2**31 - 1)
+Faker.seed(seed)
 
 fake = Faker()
 
@@ -112,7 +132,9 @@ Path("test").mkdir(parents=True, exist_ok=True)
 
 # write to file
 with open("test/test-data.log", "w") as f:
-    for i in range(1000):
+    for i in range(args.count):
         f.write(data_row() + "\n")
 
-print("done")
+print(f"Generated {args.count} test log entries")
+print(f"Seed used: {seed}")
+print(f"To reproduce: python generate-test-data.py --seed {seed} --count {args.count}")
