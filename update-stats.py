@@ -59,24 +59,6 @@ class RefCountryInfo:
             vars(self)[i] = dct[i]
 
 
-class RefOsInfo:
-    def __init__(self):
-        pass
-
-    def add(self, is_update: bool, os_id: str):
-        old_os = vars(self).get(os_id, (0, 0))
-        downloads_os = old_os[0] + 1
-        updates_os = old_os[1]
-        if is_update:
-            updates_os = updates_os + 1
-
-        vars(self)[os_id] = (downloads_os, updates_os)
-
-    def from_dict(self, dct):
-        for i in dct:
-            vars(self)[i] = dct[i]
-
-
 class RefOsVersionInfo:
     def __init__(self):
         pass
@@ -182,11 +164,7 @@ class DayInfo:
             ri.add(download[flathub.IS_UPDATE], country)
             self.countries[country] = self.countries.get(country, 0) + 1
 
-        os_id = download[flathub.OS_ID]
         os_version = download[flathub.OS_VERSION]
-        if os_id:
-            ri = self.get_ref_os_info(id)
-            ri.add(download[flathub.IS_UPDATE], os_id)
         if os_version:
             self.os_versions[os_version] = self.os_versions.get(os_version, 0) + 1
             ri = self.get_ref_os_version_info(id)
