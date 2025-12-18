@@ -107,7 +107,6 @@ class DayInfo:
         self.countries = {}
         self.ref_by_country = {}
         self.os_versions = {}
-        self.ref_by_os = {}
         self.ref_by_os_version = {}
 
     def from_dict(self, dct):
@@ -126,10 +125,6 @@ class DayInfo:
         for id in ref_by_country:
             ri = self.get_ref_country_info(id)
             ri.from_dict(ref_by_country[id])
-        ref_by_os = dct.get("ref_by_os", {})
-        for id in ref_by_os:
-            ri = self.get_ref_os_info(id)
-            ri.from_dict(ref_by_os[id])
         ref_by_os_version = dct.get("ref_by_os_version", {})
         for id in ref_by_os_version:
             ri = self.get_ref_os_version_info(id)
@@ -144,11 +139,6 @@ class DayInfo:
         if id not in self.ref_by_country:
             self.ref_by_country[id] = RefCountryInfo()
         return self.ref_by_country[id]
-
-    def get_ref_os_info(self, id):
-        if id not in self.ref_by_os:
-            self.ref_by_os[id] = RefOsInfo()
-        return self.ref_by_os[id]
 
     def get_ref_os_version_info(self, id):
         if id not in self.ref_by_os_version:
