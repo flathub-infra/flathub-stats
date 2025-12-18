@@ -133,6 +133,8 @@ FLATPAK_VERSION = 4
 IS_DELTA = 5
 IS_UPDATE = 6
 COUNTRY = 7
+OS_ID = 8
+OS_VERSION = 9
 
 # 151.100.102.134 "-" "-" [05/Jun/2018:10:01:16 +0000] "GET /repo/objects/ca/717a9f713291670035f228520523cdea82811eb34521b58b7eea6d5f9e4085.filez HTTP/1.1" 200 822627 "" "libostree/2018.5 flatpak/0.11.7" "runtime/org.freedesktop.Sdk/x86_64/1.6" "" IT
 fastly_log_pat = (
@@ -148,7 +150,8 @@ fastly_log_pat = (
     '"([^"]*)"\\s'  # user agent
     '"([^"]*)"\\s'  # ref
     '"([^"]*)"\\s'  # update_from
-    "(\\w+)"  # update_from
+    "(\\w+)"  # country
+    '(?:\\s"([^"]*)")?'  # os_info (optional)
 )
 fastly_log_re = re.compile(fastly_log_pat)
 
@@ -188,7 +191,12 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
         gzip.open(logname, "rb") if logname.endswith(".gz") else open(logname)
     ) as log_file:
         # detect log type
-        first_line = log_file.readline()
+        try:
+            first_line = log_file.readline()
+        except UnicodeDecodeError:
+            print(f"Skipping undecodable first line in {logname}")
+            first_line = ""
+
         if first_line == "":
             return []
 
@@ -310,6 +318,15 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
 
             country = match.group(12)
 
+            os_info = match.group(13)
+            os_id = None
+            os_version = None
+            if os_info and len(os_info) > 0:
+                parts = os_info.split(";")
+                if len(parts) >= 2:
+                    os_id = parts[0]
+                    os_version = f"{parts[0]};{parts[1]}"
+
             is_update = is_delta or update_from
             download = (
                 commit,
@@ -320,6 +337,8 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 is_delta,
                 is_update,
                 country,
+                os_id,
+                os_version,
             )
             downloads.append(download)
 

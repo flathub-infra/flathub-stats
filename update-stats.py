@@ -59,6 +59,42 @@ class RefCountryInfo:
             vars(self)[i] = dct[i]
 
 
+class RefOsInfo:
+    def __init__(self):
+        pass
+
+    def add(self, is_update: bool, os_id: str):
+        old_os = vars(self).get(os_id, (0, 0))
+        downloads_os = old_os[0] + 1
+        updates_os = old_os[1]
+        if is_update:
+            updates_os = updates_os + 1
+
+        vars(self)[os_id] = (downloads_os, updates_os)
+
+    def from_dict(self, dct):
+        for i in dct:
+            vars(self)[i] = dct[i]
+
+
+class RefOsVersionInfo:
+    def __init__(self):
+        pass
+
+    def add(self, is_update: bool, os_version: str):
+        old_os_version = vars(self).get(os_version, (0, 0))
+        downloads_os_version = old_os_version[0] + 1
+        updates_os_version = old_os_version[1]
+        if is_update:
+            updates_os_version = updates_os_version + 1
+
+        vars(self)[os_version] = (downloads_os_version, updates_os_version)
+
+    def from_dict(self, dct):
+        for i in dct:
+            vars(self)[i] = dct[i]
+
+
 class DayInfo:
     def __init__(self, date):
         self.date = date
@@ -70,6 +106,8 @@ class DayInfo:
         self.refs = {}
         self.countries = {}
         self.ref_by_country = {}
+        self.os_versions = {}
+        self.ref_by_os_version = {}
 
     def from_dict(self, dct):
         self.countries = dct.get("countries", {})
@@ -78,10 +116,19 @@ class DayInfo:
         self.delta_downloads = dct["delta_downloads"]
         self.ostree_versions = dct["ostree_versions"]
         self.flatpak_versions = dct["flatpak_versions"]
+        self.os_versions = dct.get("os_versions", {})
         refs = dct["refs"]
         for id in refs:
             ri = self.get_ref_info(id)
             ri.from_dict(refs[id])
+        ref_by_country = dct.get("ref_by_country", {})
+        for id in ref_by_country:
+            ri = self.get_ref_country_info(id)
+            ri.from_dict(ref_by_country[id])
+        ref_by_os_version = dct.get("ref_by_os_version", {})
+        for id in ref_by_os_version:
+            ri = self.get_ref_os_version_info(id)
+            ri.from_dict(ref_by_os_version[id])
 
     def get_ref_info(self, id):
         if id not in self.refs:
@@ -92,6 +139,11 @@ class DayInfo:
         if id not in self.ref_by_country:
             self.ref_by_country[id] = RefCountryInfo()
         return self.ref_by_country[id]
+
+    def get_ref_os_version_info(self, id):
+        if id not in self.ref_by_os_version:
+            self.ref_by_os_version[id] = RefOsVersionInfo()
+        return self.ref_by_os_version[id]
 
     def add(self, download):
         download[flathub.CHECKSUM]
@@ -129,6 +181,16 @@ class DayInfo:
             ri = self.get_ref_country_info(id)
             ri.add(download[flathub.IS_UPDATE], country)
             self.countries[country] = self.countries.get(country, 0) + 1
+
+        os_id = download[flathub.OS_ID]
+        os_version = download[flathub.OS_VERSION]
+        if os_id:
+            ri = self.get_ref_os_info(id)
+            ri.add(download[flathub.IS_UPDATE], os_id)
+        if os_version:
+            self.os_versions[os_version] = self.os_versions.get(os_version, 0) + 1
+            ri = self.get_ref_os_version_info(id)
+            ri.add(download[flathub.IS_UPDATE], os_version)
 
 
 def load_dayinfo(dest, date) -> DayInfo:
