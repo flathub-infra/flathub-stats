@@ -1,0 +1,785 @@
+# serializer version: 1
+# name: test_stats_with_seed_42
+  dict({
+    'countries': dict({
+      'AL': 3,
+      'AM': 1,
+      'AO': 2,
+      'AR': 1,
+      'AZ': 1,
+      'BE': 1,
+      'BI': 1,
+      'BN': 1,
+      'BO': 1,
+      'BS': 1,
+      'BW': 1,
+      'CH': 1,
+      'CI': 2,
+      'CM': 1,
+      'CN': 1,
+      'CO': 1,
+      'CY': 1,
+      'CZ': 1,
+      'DJ': 1,
+      'DK': 1,
+      'DM': 3,
+      'DO': 1,
+      'DZ': 2,
+      'EG': 1,
+      'ET': 2,
+      'GE': 1,
+      'GH': 1,
+      'GM': 1,
+      'GN': 1,
+      'GW': 1,
+      'GY': 1,
+      'HN': 1,
+      'HR': 1,
+      'HT': 1,
+      'IE': 1,
+      'IS': 1,
+      'JM': 1,
+      'JO': 1,
+      'JP': 1,
+      'KE': 1,
+      'KI': 1,
+      'KM': 1,
+      'KN': 1,
+      'KR': 1,
+      'LA': 2,
+      'LI': 2,
+      'LR': 1,
+      'LY': 1,
+      'MC': 1,
+      'ME': 1,
+      'MW': 1,
+      'MZ': 1,
+      'NA': 1,
+      'NO': 1,
+      'NR': 2,
+      'PA': 1,
+      'PE': 2,
+      'PH': 1,
+      'PS': 1,
+      'PY': 1,
+      'QA': 1,
+      'RU': 1,
+      'SE': 1,
+      'SI': 1,
+      'SK': 2,
+      'SN': 1,
+      'SR': 1,
+      'SV': 1,
+      'TD': 1,
+      'TG': 1,
+      'TH': 1,
+      'TR': 1,
+      'TT': 1,
+      'TW': 2,
+      'US': 1,
+      'UY': 1,
+      'UZ': 1,
+      'VC': 2,
+      'VN': 3,
+      'VU': 1,
+      'WS': 1,
+      'YE': 1,
+      'ZW': 1,
+    }),
+    'date': '2023/05/16',
+    'delta_downloads': 8,
+    'downloads': 100,
+    'flatpak_versions': dict({
+      '1.12.4': 12,
+      '1.12.7': 19,
+      '1.12.8': 26,
+      '1.14.0': 8,
+      '1.14.4': 10,
+      '1.15.4': 25,
+    }),
+    'os_versions': dict({
+      'arch;unknown': 6,
+      'debian;unknown': 16,
+      'fedora;41': 17,
+      'fedora;42': 12,
+      'opensuse-tumbleweed;20251215': 13,
+      'ubuntu;22.04': 12,
+      'ubuntu;24.04': 13,
+    }),
+    'ostree_versions': dict({
+      '2020.8': 8,
+      '2022.1': 13,
+      '2022.2': 19,
+      '2022.5': 13,
+      '2022.6': 12,
+      '2022.7': 10,
+      '2023.1': 15,
+      '2023.2': 10,
+    }),
+    'ref_by_country': dict({
+      'net.lutris.Lutris': dict({
+        'CI': list([
+          1,
+          1,
+        ]),
+        'KI': list([
+          1,
+          1,
+        ]),
+        'TG': list([
+          1,
+          1,
+        ]),
+        'WS': list([
+          1,
+          0,
+        ]),
+      }),
+      'net.pcsx2.PCSX2': dict({
+        'BE': list([
+          1,
+          0,
+        ]),
+        'BS': list([
+          1,
+          0,
+        ]),
+        'CY': list([
+          1,
+          1,
+        ]),
+        'DK': list([
+          1,
+          0,
+        ]),
+        'DM': list([
+          1,
+          1,
+        ]),
+        'DZ': list([
+          1,
+          1,
+        ]),
+        'HR': list([
+          1,
+          1,
+        ]),
+        'PA': list([
+          1,
+          0,
+        ]),
+        'PE': list([
+          1,
+          1,
+        ]),
+        'QA': list([
+          1,
+          0,
+        ]),
+        'ZW': list([
+          1,
+          0,
+        ]),
+      }),
+      'net.rpcs3.RPCS3': dict({
+        'CH': list([
+          1,
+          0,
+        ]),
+        'CO': list([
+          1,
+          1,
+        ]),
+        'DO': list([
+          1,
+          0,
+        ]),
+        'DZ': list([
+          1,
+          0,
+        ]),
+        'IS': list([
+          1,
+          0,
+        ]),
+        'JO': list([
+          1,
+          1,
+        ]),
+        'NR': list([
+          1,
+          0,
+        ]),
+        'SE': list([
+          1,
+          0,
+        ]),
+        'SI': list([
+          1,
+          1,
+        ]),
+        'TH': list([
+          1,
+          1,
+        ]),
+        'US': list([
+          1,
+          0,
+        ]),
+        'UZ': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.citra_emu.citra': dict({
+        'AZ': list([
+          1,
+          1,
+        ]),
+        'CN': list([
+          1,
+          0,
+        ]),
+        'ET': list([
+          1,
+          0,
+        ]),
+        'GE': list([
+          1,
+          0,
+        ]),
+        'GN': list([
+          1,
+          1,
+        ]),
+        'KE': list([
+          1,
+          0,
+        ]),
+        'KN': list([
+          1,
+          1,
+        ]),
+        'PE': list([
+          1,
+          0,
+        ]),
+        'SK': list([
+          1,
+          0,
+        ]),
+      }),
+      'org.libretro.RetroArch': dict({
+        'BO': list([
+          1,
+          0,
+        ]),
+        'DJ': list([
+          1,
+          1,
+        ]),
+        'HN': list([
+          1,
+          1,
+        ]),
+        'IE': list([
+          1,
+          1,
+        ]),
+        'LY': list([
+          1,
+          1,
+        ]),
+        'VN': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.mozilla.firefox': dict({
+        'AL': list([
+          1,
+          1,
+        ]),
+        'BI': list([
+          1,
+          1,
+        ]),
+        'BN': list([
+          1,
+          1,
+        ]),
+        'DM': list([
+          1,
+          1,
+        ]),
+        'NO': list([
+          1,
+          1,
+        ]),
+        'RU': list([
+          1,
+          1,
+        ]),
+        'TR': list([
+          1,
+          1,
+        ]),
+        'VC': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.qgis.qgis': dict({
+        'AL': list([
+          2,
+          1,
+        ]),
+        'AO': list([
+          1,
+          0,
+        ]),
+        'CM': list([
+          1,
+          1,
+        ]),
+        'CZ': list([
+          1,
+          0,
+        ]),
+        'ET': list([
+          1,
+          1,
+        ]),
+        'GH': list([
+          1,
+          1,
+        ]),
+        'GM': list([
+          1,
+          0,
+        ]),
+        'GW': list([
+          1,
+          0,
+        ]),
+        'GY': list([
+          1,
+          0,
+        ]),
+        'HT': list([
+          1,
+          1,
+        ]),
+        'KR': list([
+          1,
+          0,
+        ]),
+        'LI': list([
+          1,
+          1,
+        ]),
+        'LR': list([
+          1,
+          1,
+        ]),
+        'MZ': list([
+          1,
+          1,
+        ]),
+        'NR': list([
+          1,
+          1,
+        ]),
+        'PY': list([
+          1,
+          0,
+        ]),
+        'SK': list([
+          1,
+          1,
+        ]),
+        'SR': list([
+          1,
+          0,
+        ]),
+        'TD': list([
+          1,
+          1,
+        ]),
+        'TW': list([
+          1,
+          0,
+        ]),
+        'UY': list([
+          1,
+          1,
+        ]),
+        'VC': list([
+          1,
+          1,
+        ]),
+        'VN': list([
+          1,
+          0,
+        ]),
+      }),
+      'org.stellarium.Stellarium': dict({
+        'AR': list([
+          1,
+          0,
+        ]),
+        'BW': list([
+          1,
+          0,
+        ]),
+        'DM': list([
+          1,
+          1,
+        ]),
+        'EG': list([
+          1,
+          1,
+        ]),
+        'LA': list([
+          2,
+          0,
+        ]),
+        'LI': list([
+          1,
+          1,
+        ]),
+        'MC': list([
+          1,
+          1,
+        ]),
+        'NA': list([
+          1,
+          0,
+        ]),
+        'SV': list([
+          1,
+          0,
+        ]),
+        'VN': list([
+          1,
+          0,
+        ]),
+        'YE': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.x.Warpinator': dict({
+        'AM': list([
+          1,
+          1,
+        ]),
+        'AO': list([
+          1,
+          1,
+        ]),
+        'CI': list([
+          1,
+          0,
+        ]),
+        'JM': list([
+          1,
+          0,
+        ]),
+        'JP': list([
+          1,
+          1,
+        ]),
+        'KM': list([
+          1,
+          0,
+        ]),
+        'ME': list([
+          1,
+          1,
+        ]),
+        'MW': list([
+          1,
+          1,
+        ]),
+        'PH': list([
+          1,
+          1,
+        ]),
+        'PS': list([
+          1,
+          0,
+        ]),
+        'SN': list([
+          1,
+          1,
+        ]),
+        'TT': list([
+          1,
+          0,
+        ]),
+        'TW': list([
+          1,
+          1,
+        ]),
+        'VU': list([
+          1,
+          0,
+        ]),
+      }),
+    }),
+    'ref_by_os_version': dict({
+      'net.lutris.Lutris': dict({
+        'fedora;41': list([
+          2,
+          1,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          1,
+        ]),
+      }),
+      'net.pcsx2.PCSX2': dict({
+        'arch;unknown': list([
+          1,
+          0,
+        ]),
+        'fedora;41': list([
+          5,
+          2,
+        ]),
+        'ubuntu;22.04': list([
+          2,
+          2,
+        ]),
+        'ubuntu;24.04': list([
+          2,
+          1,
+        ]),
+      }),
+      'net.rpcs3.RPCS3': dict({
+        'debian;unknown': list([
+          1,
+          0,
+        ]),
+        'fedora;41': list([
+          1,
+          0,
+        ]),
+        'fedora;42': list([
+          2,
+          1,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          0,
+        ]),
+        'ubuntu;24.04': list([
+          4,
+          2,
+        ]),
+      }),
+      'org.citra_emu.citra': dict({
+        'arch;unknown': list([
+          2,
+          1,
+        ]),
+        'debian;unknown': list([
+          1,
+          1,
+        ]),
+        'fedora;42': list([
+          2,
+          1,
+        ]),
+        'opensuse-tumbleweed;20251215': list([
+          1,
+          0,
+        ]),
+      }),
+      'org.libretro.RetroArch': dict({
+        'arch;unknown': list([
+          1,
+          0,
+        ]),
+        'fedora;41': list([
+          1,
+          1,
+        ]),
+        'fedora;42': list([
+          1,
+          1,
+        ]),
+        'opensuse-tumbleweed;20251215': list([
+          2,
+          2,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.mozilla.firefox': dict({
+        'debian;unknown': list([
+          2,
+          2,
+        ]),
+        'fedora;41': list([
+          2,
+          2,
+        ]),
+        'fedora;42': list([
+          2,
+          2,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          1,
+        ]),
+        'ubuntu;24.04': list([
+          1,
+          1,
+        ]),
+      }),
+      'org.qgis.qgis': dict({
+        'arch;unknown': list([
+          1,
+          0,
+        ]),
+        'debian;unknown': list([
+          7,
+          3,
+        ]),
+        'fedora;41': list([
+          3,
+          2,
+        ]),
+        'fedora;42': list([
+          4,
+          2,
+        ]),
+        'opensuse-tumbleweed;20251215': list([
+          2,
+          2,
+        ]),
+        'ubuntu;22.04': list([
+          4,
+          2,
+        ]),
+        'ubuntu;24.04': list([
+          2,
+          1,
+        ]),
+      }),
+      'org.stellarium.Stellarium': dict({
+        'arch;unknown': list([
+          1,
+          1,
+        ]),
+        'debian;unknown': list([
+          1,
+          1,
+        ]),
+        'fedora;41': list([
+          1,
+          0,
+        ]),
+        'fedora;42': list([
+          1,
+          0,
+        ]),
+        'opensuse-tumbleweed;20251215': list([
+          3,
+          1,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          1,
+        ]),
+        'ubuntu;24.04': list([
+          3,
+          1,
+        ]),
+      }),
+      'org.x.Warpinator': dict({
+        'debian;unknown': list([
+          4,
+          2,
+        ]),
+        'fedora;41': list([
+          2,
+          2,
+        ]),
+        'opensuse-tumbleweed;20251215': list([
+          5,
+          2,
+        ]),
+        'ubuntu;22.04': list([
+          1,
+          0,
+        ]),
+        'ubuntu;24.04': list([
+          1,
+          1,
+        ]),
+      }),
+    }),
+    'refs': dict({
+      'net.lutris.Lutris': dict({
+        'x86_64': list([
+          4,
+          3,
+        ]),
+      }),
+      'net.pcsx2.PCSX2': dict({
+        'x86_64': list([
+          11,
+          5,
+        ]),
+      }),
+      'net.rpcs3.RPCS3': dict({
+        'x86_64': list([
+          12,
+          5,
+        ]),
+      }),
+      'org.citra_emu.citra': dict({
+        'x86_64': list([
+          9,
+          3,
+        ]),
+      }),
+      'org.libretro.RetroArch': dict({
+        'x86_64': list([
+          6,
+          5,
+        ]),
+      }),
+      'org.mozilla.firefox': dict({
+        'x86_64': list([
+          8,
+          8,
+        ]),
+      }),
+      'org.qgis.qgis': dict({
+        'x86_64': list([
+          24,
+          13,
+        ]),
+      }),
+      'org.stellarium.Stellarium': dict({
+        'x86_64': list([
+          12,
+          5,
+        ]),
+      }),
+      'org.x.Warpinator': dict({
+        'x86_64': list([
+          14,
+          8,
+        ]),
+      }),
+    }),
+    'updates': 55,
+  })
+# ---
