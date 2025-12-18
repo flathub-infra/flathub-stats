@@ -36,6 +36,9 @@ jobs:
       - name: Check for code errors
         run: uv run ruff check .
 
+      - name: Type check with ty
+        run: uv run ty check
+
       - name: Run tests with pytest
         run: |
           uv run pytest tests/ -v --cov=. --cov-report=term-missing
