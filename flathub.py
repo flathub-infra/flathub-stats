@@ -331,7 +331,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                     os_id = parts[0]
                     os_version = f"{parts[0]};{parts[1]}"
 
-            is_update = is_delta or update_from
+            is_update = bool(is_delta or update_from)
             download = (
                 commit,
                 date,
