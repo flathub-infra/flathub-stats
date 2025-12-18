@@ -14,6 +14,7 @@ dependencies = [
 dev = [
     "faker>=37.0.0",
     "ruff>=0.11.0",
+    "ty>=0.0.3",
 ]
 test = [
     "pytest>=8.0.0",

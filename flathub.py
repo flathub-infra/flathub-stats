@@ -11,7 +11,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from gi.repository import GLib
+from gi.repository import GLib  # type: ignore[import-untyped]
 
 
 def load_cache(path):
@@ -29,8 +29,8 @@ def load_cache(path):
 
 class CommitCache:
     def __init__(self, commit_map):
-        self.commit_map: dict[str, list[str | None]] = commit_map
-        self.dirtree_map: dict[str | None] = {}
+        self.commit_map: dict[str | None, list[str | None]] = commit_map
+        self.dirtree_map: dict[str | None, str | None] = {}
         self.modified = False
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
@@ -74,7 +74,7 @@ class CommitCache:
         if commit and not self.has_commit(commit):
             self.update_for_commit(commit, branch)
 
-    def update_for_commit(self, commit: str | None, known_branch: str | None = None):
+    def update_for_commit(self, commit: str, known_branch: str | None = None):
         ref = known_branch
         root_dirtree = None
         url = f"https://dl.flathub.org/repo/objects/{commit[0:2]}/{commit[2:]}.commit"
@@ -200,7 +200,10 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
         if first_line == "":
             return []
 
-        match = fastly_log_re.match(first_line)
+        first_line_str = (
+            first_line.decode("utf-8") if isinstance(first_line, bytes) else first_line
+        )
+        match = fastly_log_re.match(first_line_str)
         if match:
             line_re = fastly_log_re
         else:
@@ -219,7 +222,8 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
 
             if line == "":
                 break
-            match = line_re.match(line)
+            line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+            match = line_re.match(line_str)
             if not match:
                 sys.stderr.write(f"Warning: Can't match line: {line[:-1]}\n")
                 continue
@@ -229,7 +233,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
             if op != "GET" or result != "200":
                 continue
 
-            target_ref: str = match.group(10)
+            target_ref: str | None = match.group(10)
             if len(target_ref) == 0:
                 target_ref = None
 
