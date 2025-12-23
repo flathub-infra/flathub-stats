@@ -234,7 +234,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 continue
 
             target_ref: str | None = match.group(10)
-            if len(target_ref) == 0:
+            if target_ref is not None and len(target_ref) == 0:
                 target_ref = None
 
             # Early bailout for uninteresting refs (like locales) to keep work down
@@ -258,7 +258,6 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 )
                 if delta.find("-") != -1:
                     is_delta = True
-                    delta[: delta.find("-")]
                     target = delta[delta.find("-") + 1 :]
                 else:
                     target = delta
@@ -317,7 +316,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                     flatpak_version = ua[8:]
 
             update_from = match.group(11)
-            if len(update_from) == 0:
+            if update_from is not None and len(update_from) == 0:
                 update_from = None
 
             country = match.group(12)
