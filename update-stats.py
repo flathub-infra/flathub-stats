@@ -28,7 +28,10 @@ class RefInfo:
 
     def add(self, ref: str, is_update: bool):
         parts = ref.split("/")
-        arch = parts[2]
+        try:
+            arch = parts[2]
+        except IndexError:
+            arch = "x86_64"
         old = vars(self).get(arch, (0, 0))
         downloads = old[0] + 1
         updates = old[1]
