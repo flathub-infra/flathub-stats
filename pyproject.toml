@@ -20,3 +20,17 @@ test = [
     "pytest-cov>=6.0.0",
     "syrupy>=4.0.0",
 ]
+
+[tool.ruff]
+line-length = 88
+include = ["*.py"]
+target-version = "py310"
+
+[tool.ruff.format]
+line-ending = "lf"
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
