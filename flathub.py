@@ -29,9 +29,32 @@ def load_cache(path):
 
 class CommitCache:
     def __init__(self, commit_map):
+        # flatpak_is_valid_arch()
+        arch_re = re.compile(r"^[A-Za-z0-9_]+$")
+
+        self.valid_arches: set[str] = set()
         self.commit_map: dict[str | None, list[str | None]] = commit_map
         self.dirtree_map: dict[str | None, str | None] = {}
         self.modified = False
+
+        try:
+            url = "https://dl.flathub.org/repo/summary.idx"
+            response = urllib.request.urlopen(url)
+            summary_idx = response.read()
+
+            if summary_idx:
+                idx_gvar = GLib.Variant.new_from_bytes(
+                    GLib.VariantType.new("(a{s(ayaaya{sv})}a{sv})"),
+                    GLib.Bytes.new(summary_idx),
+                    True,
+                )
+                sub_sum_arr = idx_gvar.get_child_value(0)
+                for sub_sum_name in sub_sum_arr.keys():
+                    if arch_re.fullmatch(sub_sum_name):
+                        self.valid_arches.add(sub_sum_name)
+        except OSError as err:
+            print(f"Failed to load summary.idx: {err}")
+            self.valid_arches = {"x86_64", "aarch64"}
 
         # Backwards compat, re-resolve all commits where we don't have root dirtree info
         # Also remove uninteresting things from the cache
@@ -39,7 +62,7 @@ class CommitCache:
             if not isinstance(cached_data, list):
                 ref = cached_data
                 # Older version saved uninteresting refs in the cache, but we don't need them anymore
-                if ref and should_keep_ref(ref):
+                if ref and should_keep_ref(ref, self.valid_arches):
                     self.update_for_commit(commit, ref)
                 else:
                     del self.commit_map[commit]
@@ -168,17 +191,21 @@ def deltaid_to_commit(deltaid: str) -> str | None:
     return None
 
 
-def should_keep_ref(ref: str) -> bool:
+def should_keep_ref(ref: str, valid_arches: set[str]) -> bool:
     parts = ref.split("/")
-    if parts[0] == "app":
+
+    if len(parts) != 4:
+        return False
+
+    ref_kind, ref_id, ref_arch, _ = parts[0], parts[1], parts[2], parts[3]
+
+    if ref_arch not in valid_arches:
+        return False
+
+    if ref_kind == "app":
         return True
     return bool(
-        parts[0] == "runtime"
-        and not (
-            parts[1].endswith(".Debug")
-            or parts[1].endswith(".Locale")
-            or parts[1].endswith(".Sources")
-        )
+        ref_kind == "runtime" and not ref_id.endswith((".Debug", ".Locale", ".Sources"))
     )
 
 
@@ -238,7 +265,9 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 target_ref = None
 
             # Early bailout for uninteresting refs (like locales) to keep work down
-            if target_ref is not None and not should_keep_ref(target_ref):
+            if target_ref is not None and not should_keep_ref(
+                target_ref, cache.valid_arches
+            ):
                 continue
 
             # Ensure we have (at least) the current HEAD for this branch cached.
@@ -291,7 +320,7 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                 continue
 
             # Late bailout, as we're now sure of the ref
-            if not should_keep_ref(target_ref):
+            if not should_keep_ref(target_ref, cache.valid_arches):
                 continue
 
             date_str = match.group(2)

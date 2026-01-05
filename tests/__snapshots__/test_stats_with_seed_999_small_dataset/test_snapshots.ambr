@@ -24,6 +24,23 @@
       '1.14.4': 1,
       '1.15.4': 3,
     }),
+    'os_flatpak_versions': dict({
+      'debian;unknown': dict({
+        '1.12.4': 1,
+        '1.12.7': 1,
+        '1.15.4': 1,
+      }),
+      'fedora;41': dict({
+        '1.12.8': 1,
+      }),
+      'opensuse-tumbleweed;20251215': dict({
+        '1.15.4': 1,
+      }),
+      'ubuntu;24.04': dict({
+        '1.12.8': 1,
+        '1.15.4': 1,
+      }),
+    }),
     'os_versions': dict({
       'debian;unknown': 3,
       'fedora;41': 1,

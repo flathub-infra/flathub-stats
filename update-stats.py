@@ -28,7 +28,10 @@ class RefInfo:
 
     def add(self, ref: str, is_update: bool):
         parts = ref.split("/")
-        arch = parts[2]
+        try:
+            arch = parts[2]
+        except IndexError:
+            arch = "x86_64"
         old = vars(self).get(arch, (0, 0))
         downloads = old[0] + 1
         updates = old[1]
@@ -90,6 +93,7 @@ class DayInfo:
         self.ref_by_country = {}
         self.os_versions = {}
         self.ref_by_os_version = {}
+        self.os_flatpak_versions = {}
 
     def from_dict(self, dct):
         self.countries = dct.get("countries", {})
@@ -111,6 +115,7 @@ class DayInfo:
         for id in ref_by_os_version:
             ri = self.get_ref_os_version_info(id)
             ri.from_dict(ref_by_os_version[id])
+        self.os_flatpak_versions = dct.get("os_flatpak_versions", {})
 
     def get_ref_info(self, id):
         if id not in self.refs:
@@ -169,6 +174,13 @@ class DayInfo:
             self.os_versions[os_version] = self.os_versions.get(os_version, 0) + 1
             ri = self.get_ref_os_version_info(id)
             ri.add(download[flathub.IS_UPDATE], os_version)
+
+        if os_version and flatpak_version:
+            if os_version not in self.os_flatpak_versions:
+                self.os_flatpak_versions[os_version] = {}
+            self.os_flatpak_versions[os_version][flatpak_version] = (
+                self.os_flatpak_versions[os_version].get(flatpak_version, 0) + 1
+            )
 
 
 def load_dayinfo(dest, date) -> DayInfo:
