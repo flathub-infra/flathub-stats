@@ -205,7 +205,9 @@ parser.add_argument(
     help="path to ref-cache.json",
 )
 parser.add_argument(
-    "--ignore-deltas", action="store_true", help="ignore deltas in the log"
+    "--ignore-deltas",
+    action="store_true",
+    help="suppress revision-delta counts while preserving downloads and updates",
 )
 parser.add_argument(
     "logfiles", metavar="LOGFILE", type=str, help="path to log file", nargs="+"

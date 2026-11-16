@@ -280,8 +280,6 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
 
             is_delta = False
             if path.startswith("/repo/deltas/") and path.endswith("/superblock"):
-                if ignore_deltas:
-                    continue
                 delta = path[len("/repo/deltas/") : -len("/superblock")].replace(
                     "/", ""
                 )
@@ -360,6 +358,9 @@ def parse_log(logname: str, cache: CommitCache, ignore_deltas=False):
                     os_version = f"{parts[0]};{parts[1]}"
 
             is_update = bool(is_delta or update_from)
+            # Suppress only the delta metric, preserving download and update counts.
+            if ignore_deltas:
+                is_delta = False
             download = (
                 commit,
                 date,
